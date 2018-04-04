@@ -1,12 +1,10 @@
 package moe.giga.discord.contexts;
 
-import moe.giga.discord.LucoaBot;
 import moe.giga.discord.permissions.AccessLevel;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.User;
 
 public final class UserContext {
-    private LucoaBot bot;
     private User user;
     private AccessLevel permissions;
 
@@ -14,8 +12,7 @@ public final class UserContext {
     private Member member;
 
 
-    public UserContext(LucoaBot bot, User user) {
-        this.bot = bot;
+    public UserContext(User user) {
         this.user = user;
         this.permissions = AccessLevel.USER;
 

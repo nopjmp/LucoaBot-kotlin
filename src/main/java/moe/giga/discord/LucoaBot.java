@@ -2,33 +2,78 @@ package moe.giga.discord;
 
 import moe.giga.discord.annotations.CommandInfo;
 import moe.giga.discord.commands.Command;
-import moe.giga.discord.commands.CommandData;
 import net.dv8tion.jda.core.AccountType;
-import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
 import org.pmw.tinylog.Logger;
+import org.sqlite.SQLiteConfig;
 
 import javax.security.auth.login.LoginException;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 public final class LucoaBot {
     //public static final int NORMAL_SHUTDOWN = 0;
 
-    public static final int NEWLY_CREATED_CONFIG = 100;
+    static final int NEWLY_CREATED_CONFIG = 100;
 
-    public static final int UNABLE_TO_CONNECT = 110;
-    public static final int BAD_TOKEN = 111;
-    private static JDA api;
+    private static final int UNABLE_TO_CONNECT = 110;
+    private static final int BAD_TOKEN = 111;
+
+    private static final String PATH = "lucoa-bot.db";
+
+    private static String DSN;
+    private static SQLiteConfig config;
 
     public static void main(String[] args) {
         if (System.getProperty("file.encoding").equals("UTF-8")) {
+            DSN = "jdbc:sqlite:" + PATH;
+            File file = new File(PATH);
+            Logger.info("DB located: " + file.getAbsolutePath());
+            if (!(file.exists())) {
+                migrateDB();
+            }
+
+            config = new SQLiteConfig();
+            config.setSharedCache(true);
+
             setupBot();
         } else {
             Logger.error("Please relaunch with file.encoding set to UTF-8");
+        }
+    }
+
+    private static void migrateDB() {
+        try (Connection connection = DriverManager.getConnection(DSN, config.toProperties())) {
+            Statement statement = connection.createStatement();
+            statement.setQueryTimeout(300);
+
+            /* All Discord IDs are 64bit unsigned integers, unfortunately SQLite doesn't properly support them.
+             * So we use TEXT instead. BLOB would work here too, but not needed
+             * */
+
+            statement.executeUpdate("CREATE TABLE servers ( server_id TEXT PRIMARY KEY, prefix TEXT, log_channel TEXT, star_channel TEXT );");
+
+            statement.executeUpdate("CREATE TABLE servers_roles( server_id TEXT, role_spec TEXT, role_id TEXT, UNIQUE(server_id, role_spec) ON CONFLICT REPLACE);");
+            statement.executeUpdate("CREATE INDEX servers_roles_id ON servers_roles(server_id);");
+
+            statement.executeUpdate("CREATE TABLE servers_self_roles(server_id TEXT, role_spec TEXT, role_id TEXT, UNIQUE(server_id, role_id) ON CONFLICT REPLACE);");
+            statement.executeUpdate("CREATE INDEX servers_self_roles_id ON servers_self_roles(server_id);");
+
+            statement.executeUpdate("CREATE TABLE custom_commands( server_id TEXT, command TEXT, response TEXT, UNIQUE(server_id, command) ON CONFLICT REPLACE);");
+            statement.executeUpdate("CREATE INDEX custom_commands_id ON custom_commands(server_id);");
+
+            statement.executeUpdate("CREATE TABLE servers_logs( server_id TEXT, event_name TEXT, channel_id TEXT );");
+            statement.executeUpdate("CREATE INDEX servers_logs_id_name ON servers_logs(server_id, event_name);");
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -37,9 +82,9 @@ public final class LucoaBot {
             Settings settings = SettingsManager.getInstance().getSettings();
             JDABuilder jdaBuilder = new JDABuilder(AccountType.BOT).setToken(settings.getBotToken());
 
-            jdaBuilder.addEventListener(new CommandHandler(findCommands()));
+            jdaBuilder.addEventListener(new CommandHandler(jdaBuilder, findCommands()));
 
-            api = jdaBuilder.buildBlocking();
+            jdaBuilder.buildBlocking();
         } catch (LoginException e) {
             e.printStackTrace();
             Logger.error("The bot token provided was incorrect.");
@@ -47,42 +92,41 @@ public final class LucoaBot {
         } catch (InterruptedException e) {
             e.printStackTrace();
             System.exit(UNABLE_TO_CONNECT);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
             e.printStackTrace();
         }
     }
 
-    private static List<CommandData> findCommands() throws IOException, IllegalAccessException, InstantiationException {
-        List<Class<?>> packageClasses = getAllClassesInPackageContaining(Command.class);
+    private static List<Command> findCommands() throws IOException {
+        List<Class<?>> packageClasses = getAllClassesInPackageContainingCommand();
 
-        List<CommandData> commands = new ArrayList<>();
+        List<Command> commands = new ArrayList<>();
 
         for (Class<?> clazz : packageClasses) {
-            CommandInfo commandInfo = clazz.getAnnotation(CommandInfo.class);
-            if (commandInfo == null) continue;
+            try {
+                CommandInfo commandInfo = clazz.getAnnotation(CommandInfo.class);
+                if (commandInfo == null) continue;
 
-            commands.add(new CommandData((Command)clazz.newInstance(), commandInfo));
+                commands.add((Command) clazz.getDeclaredConstructor().newInstance());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         return commands;
     }
 
-    private static List<Class<?>> getAllClassesInPackageContaining(Class<?> clazz)
-            throws IOException
-    {
-        String clazzPackageName = clazz
+    private static List<Class<?>> getAllClassesInPackageContainingCommand()
+            throws IOException {
+        String clazzPackageName = Command.class
                 .getPackage()
                 .getName();
 
-        String clazzPath = clazz
+        File clazzFile = new File(Command.class
                 .getResource(".")
-                .getPath();
+                .getFile());
 
-        Path packagePath = Paths.get(clazzPath);
+        Path packagePath = Paths.get(clazzFile.getAbsolutePath());
 
         final List<Class<?>> packageClasses = new ArrayList<>();
 
@@ -90,10 +134,9 @@ public final class LucoaBot {
             @Override
             public FileVisitResult visitFile(
                     Path file, BasicFileAttributes attrs)
-                    throws IOException
-            {
+                    throws IOException {
                 String filename =
-                        file.getName(file.getNameCount()-1).toString();
+                        file.getName(file.getNameCount() - 1).toString();
 
                 if (filename.endsWith(".class")) {
                     String className = filename.replace(".class", "");
@@ -103,8 +146,7 @@ public final class LucoaBot {
                                 clazzPackageName + "." + className);
 
                         packageClasses.add(loadedClazz);
-                    }
-                    catch(ClassNotFoundException e) {
+                    } catch (ClassNotFoundException e) {
                         System.err.println(
                                 "class not found: " + e.getMessage());
                     }
@@ -115,5 +157,9 @@ public final class LucoaBot {
         });
 
         return packageClasses;
+    }
+
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(DSN, config.toProperties());
     }
 }

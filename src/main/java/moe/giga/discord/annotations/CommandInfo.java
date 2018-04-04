@@ -11,11 +11,16 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CommandInfo {
     String name();
+
     String description() default "";
+
     String usage() default "";
+
     String[] aliases() default {};
 
     boolean hidden() default false;
+
     boolean allowBots() default false;
+
     AccessLevel level() default AccessLevel.USER;
 }

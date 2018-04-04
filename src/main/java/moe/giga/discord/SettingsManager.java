@@ -25,14 +25,14 @@ public final class SettingsManager {
     }
 
     private SettingsManager() {
-       if (!configFile.toFile().exists()) {
-           Logger.info("Creating Default Settings...");
-           Logger.info("You will need to edit config.json with your login information.");
-           this.settings = getDefaultSettings();
-           saveSettings();
-           System.exit(LucoaBot.NEWLY_CREATED_CONFIG);
-       }
-       loadSettings();
+        if (!configFile.toFile().exists()) {
+            Logger.info("Creating Default Settings...");
+            Logger.info("You will need to edit config.json with your login information.");
+            this.settings = getDefaultSettings();
+            saveSettings();
+            System.exit(LucoaBot.NEWLY_CREATED_CONFIG);
+        }
+        loadSettings();
     }
 
     private Settings getDefaultSettings() {
