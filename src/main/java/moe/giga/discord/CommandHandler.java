@@ -9,12 +9,14 @@ import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.core.hooks.SubscribeEvent;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public final class CommandHandler extends ListenerAdapter {
+public final class CommandHandler {
     private final Map<String, Command> commandMap;
 
     CommandHandler(JDABuilder builder, List<Command> commands) {
@@ -36,15 +38,15 @@ public final class CommandHandler extends ListenerAdapter {
     }
 
     private String[] commandArgs(Message message) {
-        return commandArgs(message.getContentDisplay());
+        return commandArgs(message.getContentRaw());
     }
 
     private String[] commandArgs(String string) {
         return string.split(" ");
     }
 
-    @Override
-    public void onMessageReceived(MessageReceivedEvent event) {
+    @SubscribeEvent
+    public void handleMessage(MessageReceivedEvent event) {
         ServerContext SC = new ServerContext(event.getGuild());
         if (containsCommand(SC, event.getMessage())) {
             String[] args = commandArgs(event.getMessage());
@@ -55,6 +57,8 @@ public final class CommandHandler extends ListenerAdapter {
                 MessageContext MC = new MessageContext(event);
                 MC.setUC(new UserContext(event.getAuthor()));
                 MC.setSC(SC);
+
+                args = Arrays.copyOfRange(args, 1, args.length);
                 command.onCommand(MC, args);
             }
         }

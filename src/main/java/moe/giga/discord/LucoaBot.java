@@ -4,20 +4,21 @@ import moe.giga.discord.annotations.CommandInfo;
 import moe.giga.discord.commands.Command;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDABuilder;
+import net.dv8tion.jda.core.hooks.AnnotatedEventManager;
 import org.pmw.tinylog.Logger;
+import org.reflections.Reflections;
 import org.sqlite.SQLiteConfig;
 
 import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public final class LucoaBot {
     //public static final int NORMAL_SHUTDOWN = 0;
@@ -82,31 +83,27 @@ public final class LucoaBot {
             Settings settings = SettingsManager.getInstance().getSettings();
             JDABuilder jdaBuilder = new JDABuilder(AccountType.BOT).setToken(settings.getBotToken());
 
+            jdaBuilder.setEventManager(new AnnotatedEventManager());
             jdaBuilder.addEventListener(new CommandHandler(jdaBuilder, findCommands()));
 
             jdaBuilder.buildBlocking();
         } catch (LoginException e) {
             e.printStackTrace();
-            Logger.error("The bot token provided was incorrect.");
+            Logger.error("The bot token provided was most likely incorrect.");
             System.exit(BAD_TOKEN);
         } catch (InterruptedException e) {
             e.printStackTrace();
             System.exit(UNABLE_TO_CONNECT);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
-    private static List<Command> findCommands() throws IOException {
-        List<Class<?>> packageClasses = getAllClassesInPackageContainingCommand();
+    private static List<Command> findCommands() {
+        Reflections reflections = new Reflections("moe.giga.discord.commands");
+        Set<Class<?>> annotated = reflections.getTypesAnnotatedWith(CommandInfo.class);
 
         List<Command> commands = new ArrayList<>();
-
-        for (Class<?> clazz : packageClasses) {
+        for (Class<?> clazz : annotated) {
             try {
-                CommandInfo commandInfo = clazz.getAnnotation(CommandInfo.class);
-                if (commandInfo == null) continue;
-
                 commands.add((Command) clazz.getDeclaredConstructor().newInstance());
             } catch (Exception e) {
                 e.printStackTrace();
@@ -114,49 +111,6 @@ public final class LucoaBot {
         }
 
         return commands;
-    }
-
-    private static List<Class<?>> getAllClassesInPackageContainingCommand()
-            throws IOException {
-        String clazzPackageName = Command.class
-                .getPackage()
-                .getName();
-
-        File clazzFile = new File(Command.class
-                .getResource(".")
-                .getFile());
-
-        Path packagePath = Paths.get(clazzFile.getAbsolutePath());
-
-        final List<Class<?>> packageClasses = new ArrayList<>();
-
-        Files.walkFileTree(packagePath, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(
-                    Path file, BasicFileAttributes attrs)
-                    throws IOException {
-                String filename =
-                        file.getName(file.getNameCount() - 1).toString();
-
-                if (filename.endsWith(".class")) {
-                    String className = filename.replace(".class", "");
-
-                    try {
-                        Class<?> loadedClazz = Class.forName(
-                                clazzPackageName + "." + className);
-
-                        packageClasses.add(loadedClazz);
-                    } catch (ClassNotFoundException e) {
-                        System.err.println(
-                                "class not found: " + e.getMessage());
-                    }
-                }
-
-                return super.visitFile(file, attrs);
-            }
-        });
-
-        return packageClasses;
     }
 
     public static Connection getConnection() throws SQLException {

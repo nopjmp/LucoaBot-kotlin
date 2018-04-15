@@ -59,4 +59,8 @@ public final class MessageContext {
             event.getTextChannel().sendMessage(message).complete();
         }
     }
+
+    public Message sendFormattedMessage(String format, String... args) {
+        return sendMessage(String.format(format, args));
+    }
 }

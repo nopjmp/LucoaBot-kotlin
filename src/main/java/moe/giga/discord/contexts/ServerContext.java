@@ -48,22 +48,6 @@ public final class ServerContext {
         }
     }
 
-    public Guild getGuild() {
-        return guild;
-    }
-
-    public String getPrefix() {
-        return prefix;
-    }
-
-    public String getStarChannel() {
-        return starChannel;
-    }
-
-    public String getLogChannel() {
-        return logChannel;
-    }
-
     Map<String, String> getServerRoles() {
         try (Connection c = LucoaBot.getConnection()) {
             PreparedStatement pstmt = c.prepareStatement("SELECT * FROM servers_roles WHERE server_id = ?");
@@ -102,5 +86,67 @@ public final class ServerContext {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public Guild getGuild() {
+        return guild;
+    }
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(String prefix) throws IllegalArgumentException {
+        if (prefix == null || prefix.length() == 0) {
+            throw new IllegalArgumentException("Prefix was invalid!");
+        }
+
+        try (Connection c = LucoaBot.getConnection()) {
+            PreparedStatement pstmt = c.prepareStatement("UPDATE servers SET prefix = ? WHERE server_id = ?");
+            pstmt.setString(1, prefix);
+            pstmt.setString(2, guild.getId());
+
+            pstmt.executeUpdate();
+
+            this.prefix = prefix;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getStarChannel() {
+        return starChannel;
+    }
+
+    public void setStarChannel(String starChannel) {
+        try (Connection c = LucoaBot.getConnection()) {
+            PreparedStatement pstmt = c.prepareStatement("UPDATE servers SET star_channel = ? WHERE server_id = ?");
+            pstmt.setString(1, starChannel);
+            pstmt.setString(2, guild.getId());
+
+            pstmt.executeUpdate();
+
+            this.starChannel = starChannel;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getLogChannel() {
+        return logChannel;
+    }
+
+    public void setLogChannel(String logChannel) {
+        try (Connection c = LucoaBot.getConnection()) {
+            PreparedStatement pstmt = c.prepareStatement("UPDATE servers SET log_channel = ? WHERE server_id = ?");
+            pstmt.setString(1, logChannel);
+            pstmt.setString(2, guild.getId());
+
+            pstmt.executeUpdate();
+
+            this.logChannel = logChannel;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }
