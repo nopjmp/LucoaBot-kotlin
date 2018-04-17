@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="EntryPointsManager">
-    <list size="2">
+    <list size="3">
       <item index="0" class="java.lang.String" itemvalue="moe.giga.discord.annotations.CommandInfo" />
-      <item index="1" class="java.lang.String" itemvalue="net.dv8tion.jda.core.hooks.SubscribeEvent" />
+      <item index="1" class="java.lang.String" itemvalue="moe.giga.discord.annotations.IsCommand" />
+      <item index="2" class="java.lang.String" itemvalue="net.dv8tion.jda.core.hooks.SubscribeEvent" />
     </list>
   </component>
   <component name="ExternalStorageConfigurationManager" enabled="true" />
-  <component name="ProjectRootManager" version="2" project-jdk-name="10" project-jdk-type="JavaSDK">
+  <component name="ProjectPlainTextFileTypeManager">
+    <file url="file://$PROJECT_DIR$/src/main/kotlin/moe/giga/discord/contexts/ContextBuilder.kt" />
+  </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="Zulu OpenJDK 10" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>
