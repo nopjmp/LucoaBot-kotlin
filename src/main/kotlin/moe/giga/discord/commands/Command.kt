@@ -5,7 +5,7 @@ import moe.giga.discord.permissions.AccessLevel
 import net.dv8tion.jda.core.JDABuilder
 
 abstract class Command {
-    abstract fun onCommand(MC: MessageContext, args: Array<String>)
+    abstract fun onCommand(MC: MessageContext, args: List<String>)
 
     open fun init(builder: JDABuilder) {
 

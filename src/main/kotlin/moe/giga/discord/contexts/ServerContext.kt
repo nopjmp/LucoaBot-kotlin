@@ -71,7 +71,7 @@ class ServerContext(val guild: Guild) {
         }
     }
 
-    internal fun getServerSelfRoles(): Map<String, List<String>>? {
+    internal fun getServerSelfRoles(): Map<String, List<String>> {
         try {
             LucoaBot.connection.use { c ->
                 val statement = c.prepareStatement("SELECT * FROM servers_self_roles WHERE server_id = ?")
@@ -91,7 +91,7 @@ class ServerContext(val guild: Guild) {
             e.printStackTrace()
         }
 
-        return null
+        return mapOf()
     }
 
     fun save() {

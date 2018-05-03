@@ -9,7 +9,7 @@ import net.dv8tion.jda.core.requests.restaction.MessageAction
 import java.awt.Color
 import javax.annotation.CheckReturnValue
 
-class MessageContext(
+class MessageContext private constructor(
         val channel: MessageChannel,
         val userCtx: UserContext,
         val serverCtx: ServerContext,

@@ -28,7 +28,7 @@ class Starboard : Command() {
         builder.addEventListener(this)
     }
 
-    override fun onCommand(MC: MessageContext, args: Array<String>) {
+    override fun onCommand(MC: MessageContext, args: List<String>) {
         if (args.isNotEmpty()) {
             if (args[0].equals("none", ignoreCase = true)) {
                 MC.serverCtx!!.starChannel = null

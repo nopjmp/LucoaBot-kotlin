@@ -88,7 +88,7 @@ object LucoaBot {
             val jdaBuilder = JDABuilder(AccountType.BOT).setToken(settings.botToken)
 
             jdaBuilder.setEventManager(AnnotatedEventManager())
-            jdaBuilder.addEventListener(CommandHandler(jdaBuilder, findCommands()))
+            jdaBuilder.addEventListener(Handler(jdaBuilder, findCommands()))
 
             jdaBuilder.buildBlocking()
         } catch (e: LoginException) {

@@ -8,7 +8,7 @@ class WhoAmICommand : Command() {
     override val name = "whoami"
     override val hidden = true
 
-    override fun onCommand(MC: MessageContext, args: Array<String>) {
+    override fun onCommand(MC: MessageContext, args: List<String>) {
         MC.sendFormattedMessage("You are **%s**", MC.userCtx.humanRole).queue()
     }
 }
