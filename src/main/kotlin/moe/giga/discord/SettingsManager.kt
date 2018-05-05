@@ -1,12 +1,11 @@
 package moe.giga.discord
 
-import com.alibaba.fastjson.JSON
+import com.google.gson.Gson
 import org.pmw.tinylog.Logger
 import java.io.File
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
-import java.util.stream.Collectors
 
 class SettingsManager private constructor() {
     lateinit var settings: Settings
@@ -36,7 +35,7 @@ class SettingsManager private constructor() {
     private fun saveSettings() {
         try {
             val writer = Files.newBufferedWriter(configFile, StandardCharsets.UTF_8)
-            JSON.writeJSONString(writer, this.settings)
+            writer.write(Gson().toJson(this.settings))
         } catch (e: IOException) {
             e.printStackTrace()
         }
@@ -46,8 +45,7 @@ class SettingsManager private constructor() {
     private fun loadSettings() {
         try {
             val reader = Files.newBufferedReader(configFile, StandardCharsets.UTF_8)
-            val json = reader.lines().collect(Collectors.joining("\n"))
-            this.settings = JSON.parseObject(json, Settings::class.java)
+            this.settings = Gson().fromJson(reader, Settings::class.java)
         } catch (e: IOException) {
             e.printStackTrace()
         }
