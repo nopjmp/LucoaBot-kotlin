@@ -47,7 +47,7 @@ object LucoaBot {
                 migrateDB()
             }
 
-            setupBot(settings!!)
+            setupBot(settings)
         } else {
             Logger.error("Please relaunch with file.encoding set to UTF-8")
         }

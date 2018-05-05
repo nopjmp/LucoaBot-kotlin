@@ -9,14 +9,16 @@ import java.nio.file.Files
 import java.util.stream.Collectors
 
 class SettingsManager private constructor() {
-    var settings: Settings? = null
+    lateinit var settings: Settings
         private set
+
     private val configFile = File(".").toPath().resolve("config.json")
 
     private val defaultSettings: Settings
         get() {
             val newSettings = Settings()
             newSettings.botToken = ""
+            newSettings.ownerId = ""
             return newSettings
         }
 
