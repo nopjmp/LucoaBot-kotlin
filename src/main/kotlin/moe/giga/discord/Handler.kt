@@ -27,10 +27,10 @@ class Handler internal constructor(builder: JDABuilder, commands: List<Command>)
 
     private fun mapAlias(command: String): String = aliasMap.getOrDefault(command, command)
 
-    private fun containsCommand(SC: ServerContext, message: Message): Boolean {
+    private fun containsCommand(prefix: String, message: Message): Boolean {
         return try {
             val rawCommand = commandArgs(message).first()
-            rawCommand.startsWith(SC.prefix) && commandMap.containsKey(mapAlias(rawCommand.substring(1)))
+            rawCommand.startsWith(prefix) && commandMap.containsKey(mapAlias(rawCommand.substring(prefix.length)))
         } catch (_: NoSuchElementException) {
             false
         }
@@ -54,9 +54,9 @@ class Handler internal constructor(builder: JDABuilder, commands: List<Command>)
     fun handleMessage(event: MessageReceivedEvent) {
         if (!event.isWebhookMessage && event.author != event.jda.selfUser) {
             val serverContext = ServerContext(event.guild)
-            if (containsCommand(serverContext, event.message)) {
+            if (containsCommand(serverContext.prefix, event.message)) {
                 val args = commandArgs(event.message)
-                val command = resolveCommand(args.first().substring(1))
+                val command = resolveCommand(args.first().substring(serverContext.prefix.length))
 
                 if (command != null) {
                     if (!event.author.isBot || command.allowBots) {
