@@ -62,7 +62,11 @@ class Handler internal constructor(builder: JDABuilder, commands: List<Command>)
                     if (!event.author.isBot || command.allowBots) {
                         val mc = MessageContext.Builder().event(event).serverContext(serverContext).build()
                         if (mc.userCtx.allowed(command.level)) {
-                            command.onCommand(mc, args.drop(1).toList())
+                            try {
+                                command.onCommand(mc, args.drop(1).toList())
+                            } catch (_: Exception) {
+                                mc.sendError("Exception running command.")
+                            }
                         } else {
                             mc.sendError("You are not allowed to run `%s`.").queue()
                         }
