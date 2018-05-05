@@ -5,9 +5,6 @@ import moe.giga.discord.contexts.MessageContext
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.Role
 
-const val AS_MENTION = true
-const val AS_MENTION_WORD = "show"
-
 @IsCommand
 class RolesCommand : Command() {
     override val name = "roles"
@@ -40,5 +37,10 @@ class RolesCommand : Command() {
         }
 
         MC.sendMessage(embedBuilder.build()).queue()
+    }
+
+    companion object {
+        const val AS_MENTION = true
+        const val AS_MENTION_WORD = "show"
     }
 }

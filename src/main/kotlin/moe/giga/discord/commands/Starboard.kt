@@ -3,6 +3,7 @@ package moe.giga.discord.commands
 import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.contexts.ServerContext
+import moe.giga.discord.permissions.AccessLevel
 import moe.giga.discord.util.MiscUtils
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDABuilder
@@ -19,6 +20,7 @@ import java.util.stream.Collectors
 class Starboard : Command() {
     override val name = "starboard"
     override val description = "Sets the starboard channel (use none to reset)"
+    override val level = AccessLevel.MOD
 
     private val snowflakeAssocMap = ConcurrentHashMap<Long, StarboardEntry>()
 
@@ -77,7 +79,7 @@ class Starboard : Command() {
         if (sc.starChannel != null && sc.starChannel != message.channel.id) {
             val entry = snowflakeAssocMap[messageId]
 
-            if (messageReactions.isEmpty()) {
+            if (messageReactions.size < DEFAULT_THRESHOLD) {
                 if (entry != null) {
                     snowflakeAssocMap.remove(messageId)
                     val channel = guild.getTextChannelById(entry.channelId)

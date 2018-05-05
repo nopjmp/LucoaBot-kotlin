@@ -2,6 +2,7 @@ package moe.giga.discord.commands
 
 import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
+import moe.giga.discord.permissions.AccessLevel
 
 @IsCommand
 class RemoveRoleCommand : Command() {
@@ -9,6 +10,7 @@ class RemoveRoleCommand : Command() {
     override val aliases = arrayOf("rsar")
     override val description = "Removes role(s) from the self assignable role list."
     override val usage = "removerole <role>"
+    override val level = AccessLevel.MOD
 
     override fun onCommand(MC: MessageContext, args: List<String>) {
         val roleName = args.first()

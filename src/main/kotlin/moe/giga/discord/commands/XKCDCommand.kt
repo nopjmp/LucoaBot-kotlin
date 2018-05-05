@@ -75,7 +75,7 @@ class XKCDCommand : Command() {
             val day: String
     )
 
-    class OkHttpCallbackProxy(private val success: (Response?) -> Unit, private val error: (IOException?) -> Unit) : Callback {
+    private class OkHttpCallbackProxy(private val success: (Response?) -> Unit, private val error: (IOException?) -> Unit) : Callback {
         override fun onFailure(call: Call?, e: IOException?) {
             error(e)
         }
@@ -88,7 +88,9 @@ class XKCDCommand : Command() {
             }
         }
     }
-}
 
-fun ClosedRange<Int>.random() =
-        Random().nextInt(endInclusive - start) + start
+    companion object {
+        fun ClosedRange<Int>.random() =
+                Random().nextInt(endInclusive - start) + start
+    }
+}

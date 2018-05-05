@@ -2,6 +2,7 @@ package moe.giga.discord.commands
 
 import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
+import moe.giga.discord.permissions.AccessLevel
 
 @IsCommand
 class AddRoleCommand : Command() {
@@ -9,6 +10,7 @@ class AddRoleCommand : Command() {
     override val aliases = arrayOf("asar")
     override val description = "Adds role(s) to the self assignable role list."
     override val usage = "addrole <role> <group>"
+    override val level = AccessLevel.MOD
 
     override fun onCommand(MC: MessageContext, args: List<String>) {
         val roleName = args.first()
