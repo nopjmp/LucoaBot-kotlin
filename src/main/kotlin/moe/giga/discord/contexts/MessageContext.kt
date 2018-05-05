@@ -26,9 +26,6 @@ class MessageContext private constructor(
     fun sendMessage(message: MessageEmbed): MessageAction = channel.sendMessage(message)
 
     @CheckReturnValue
-    fun sendFormattedMessage(format: String, vararg args: String): MessageAction = sendMessage(String.format(format, *args))
-
-    @CheckReturnValue
     fun sendError(format: String, vararg args: String): MessageAction = sendMessage(String.format("⛔ $format", *args))
 
     class Builder {

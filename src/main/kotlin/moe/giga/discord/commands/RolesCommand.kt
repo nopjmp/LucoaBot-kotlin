@@ -6,15 +6,16 @@ import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.Role
 
 const val AS_MENTION = true
+const val AS_MENTION_WORD = "show"
 
 @IsCommand
 class RolesCommand : Command() {
     override val name = "roles"
     override val aliases = arrayOf("lsar")
-    override val description = "Adds role(s) to the self assignable role list."
-    override val usage = "roles <mentions (true)>"
+    override val description = "Lists self assignable roles. Defaults to $AS_MENTION_WORD as mentions."
+    override val usage = "roles <mentions ($AS_MENTION)>"
 
-    fun formatRole(asMention: Boolean, role: Role): String {
+    private fun formatRole(asMention: Boolean, role: Role): String {
         return if (asMention)
             role.asMention
         else

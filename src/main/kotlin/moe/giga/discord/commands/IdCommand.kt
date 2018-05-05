@@ -9,6 +9,6 @@ class IdCommand : Command() {
     override val hidden = true
 
     override fun onCommand(MC: MessageContext, args: List<String>) {
-        MC.sendFormattedMessage("ID: %s", MC.userCtx.user.id).queue()
+        MC.sendMessage("ID: ${MC.userCtx.user.id}").queue()
     }
 }

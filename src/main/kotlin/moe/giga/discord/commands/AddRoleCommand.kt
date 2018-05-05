@@ -18,7 +18,7 @@ class AddRoleCommand : Command() {
         if (foundRole != null) {
             MC.serverCtx.addSelfRole(group, foundRole.id)
 
-            MC.sendFormattedMessage("**%s** is now self assignable in group %s.", foundRole.name, group).queue()
+            MC.sendMessage("**${foundRole.name}** is now self assignable in group $group.").queue()
         } else {
             MC.sendError("`%s` not found as a role on this server.", roleName).queue()
         }

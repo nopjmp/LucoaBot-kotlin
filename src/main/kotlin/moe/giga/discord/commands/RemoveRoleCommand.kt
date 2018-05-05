@@ -18,7 +18,7 @@ class RemoveRoleCommand : Command() {
             if (MC.serverCtx.getServerSelfRoles().count { it.value.contains(foundRole.id) } > 0) {
                 MC.serverCtx.deleteSelfRole(foundRole.id)
 
-                MC.sendFormattedMessage("**%s** is no longer self assignable.", foundRole.name).queue()
+                MC.sendMessage("**${foundRole.name}** is no longer self assignable.").queue()
                 return
             }
         }

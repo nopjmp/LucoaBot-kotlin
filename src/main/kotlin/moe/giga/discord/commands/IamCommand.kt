@@ -37,7 +37,7 @@ class IamCommand : Command() {
                         }
 
                         controller.addRolesToMember(member, role).queue({
-                            MC.sendFormattedMessage("%s now has the role **%s**", MC.userCtx.asText, role.name).queue()
+                            MC.sendMessage("${MC.userCtx.asText} now has the role **${role.name}**").queue()
                         })
                     }
                 }

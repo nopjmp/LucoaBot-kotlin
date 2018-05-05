@@ -26,7 +26,7 @@ class IamNotCommand : Command() {
                         MC.sendError("%s... You don't already have **%s**.", MC.userCtx.asText, role.name).queue()
                     } else {
                         MC.serverCtx.guild.controller.removeRolesFromMember(member, role).queue({
-                            MC.sendFormattedMessage("%s no longer has **%s**", MC.userCtx.asText, role.name).queue()
+                            MC.sendMessage("${MC.userCtx.asText} no longer has **${role.name}**").queue()
                         })
                     }
                 }
