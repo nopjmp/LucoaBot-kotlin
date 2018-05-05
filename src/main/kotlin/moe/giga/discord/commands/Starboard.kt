@@ -31,11 +31,11 @@ class Starboard : Command() {
     override fun onCommand(MC: MessageContext, args: List<String>) {
         if (args.isNotEmpty()) {
             if (args[0].equals("none", ignoreCase = true)) {
-                MC.serverCtx!!.starChannel = null
+                MC.serverCtx.starChannel = null
             } else {
                 val channel = MC.serverCtx.guild.getTextChannelsByName(args[0], true)[0]
                 if (channel != null) {
-                    MC.serverCtx!!.starChannel = channel.id
+                    MC.serverCtx.starChannel = channel.id
                     MC.sendMessage(String.format("Star channel set to %s", channel.asMention)).queue()
                 }
             }
