@@ -1,12 +1,10 @@
 package moe.giga.discord.contexts
 
-import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.MessageBuilder
 import net.dv8tion.jda.core.entities.*
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.requests.restaction.MessageAction
-import java.awt.Color
 import javax.annotation.CheckReturnValue
 
 class MessageContext private constructor(
@@ -31,7 +29,7 @@ class MessageContext private constructor(
     fun sendFormattedMessage(format: String, vararg args: String): MessageAction = sendMessage(String.format(format, *args))
 
     @CheckReturnValue
-    fun sendError(format: String, vararg args: String): MessageAction = sendMessage(EmbedBuilder().setColor(Color.RED).setDescription(String.format(format, *args)).build())
+    fun sendError(format: String, vararg args: String): MessageAction = sendMessage(String.format("⛔ $format", *args))
 
     class Builder {
         lateinit var user: User
