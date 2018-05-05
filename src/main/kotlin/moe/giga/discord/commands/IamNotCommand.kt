@@ -6,6 +6,7 @@ import moe.giga.discord.contexts.MessageContext
 @IsCommand
 class IamNotCommand : Command() {
     override val name = "iamnot"
+    override val aliases = arrayOf("nr")
     override val description = "Removes roles from the user running this command."
     override val usage = "iamnot <role>"
 
@@ -22,10 +23,10 @@ class IamNotCommand : Command() {
                 val member = MC.userCtx.member
                 if (member != null) {
                     if (!member.roles.contains(role)) {
-                        MC.sendError("%s... You don't already have **%s**.", MC.userCtx.asText, role.name)
+                        MC.sendError("%s... You don't already have **%s**.", MC.userCtx.asText, role.name).queue()
                     } else {
                         MC.serverCtx.guild.controller.removeRolesFromMember(member, role).queue({
-                            MC.sendFormattedMessage("%s no longer has **%s**", MC.userCtx.asText, role.name)
+                            MC.sendFormattedMessage("%s no longer has **%s**", MC.userCtx.asText, role.name).queue()
                         })
                     }
                 }

@@ -71,6 +71,69 @@ class ServerContext(val guild: Guild) {
         }
     }
 
+    internal fun addSpecRole(spec: String, id: String) {
+        try {
+            LucoaBot.connection.use { c ->
+                c.prepareStatement("INSERT OR REPLACE INTO servers_roles(server_id, role_spec, role_id) VALUES (?, ?, ?)").apply {
+                    setString(1, guild.id)
+                    setString(2, spec)
+                    setString(3, id)
+
+                    executeUpdate()
+                }
+            }
+        } catch (e: SQLException) {
+            e.printStackTrace()
+        }
+    }
+
+    internal fun deleteSpecRole(id: String) {
+        try {
+            LucoaBot.connection.use { c ->
+                c.prepareStatement("DELETE FROM servers_roles WHERE server_id = ? AND role_id = ?").apply {
+                    setString(1, guild.id)
+                    setString(2, id)
+
+                    executeUpdate()
+                }
+            }
+        } catch (e: SQLException) {
+            e.printStackTrace()
+        }
+    }
+
+    internal fun addSelfRole(group: String, id: String) {
+        try {
+            LucoaBot.connection.use { c ->
+                c.prepareStatement("INSERT OR REPLACE INTO servers_self_roles(server_id, role_spec, role_id) VALUES (?, ?, ?)").apply {
+                    setString(1, guild.id)
+                    setString(2, group)
+                    setString(3, id)
+
+                    executeUpdate()
+                }
+            }
+        } catch (e: SQLException) {
+            e.printStackTrace()
+        }
+    }
+
+    internal fun deleteSelfRole(id: String) {
+        try {
+            LucoaBot.connection.use { c ->
+                c.prepareStatement("DELETE FROM servers_self_roles WHERE server_id = ? AND role_id = ?").apply {
+                    setString(1, guild.id)
+                    setString(2, id)
+
+                    executeUpdate()
+                }
+            }
+        } catch (e: SQLException) {
+            e.printStackTrace()
+        }
+    }
+
+
     internal fun getServerSelfRoles(): Map<String, List<String>> {
         try {
             LucoaBot.connection.use { c ->

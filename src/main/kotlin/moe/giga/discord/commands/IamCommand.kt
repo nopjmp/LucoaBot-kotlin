@@ -6,6 +6,7 @@ import moe.giga.discord.contexts.MessageContext
 @IsCommand
 class IamCommand : Command() {
     override val name = "iam"
+    override val aliases = arrayOf("r")
     override val description = "Assigns roles to the user running this command."
     override val usage = "iam <role>"
 
@@ -25,7 +26,7 @@ class IamCommand : Command() {
                 val member = MC.userCtx.member
                 if (member != null) {
                     if (member.roles.contains(role)) {
-                        MC.sendError("%s... You already have **%s**.", MC.userCtx.asText, role.name)
+                        MC.sendError("%s... You already have **%s**.", MC.userCtx.asText, role.name).queue()
                     } else {
 
                         val controller = MC.serverCtx.guild.controller
@@ -36,7 +37,7 @@ class IamCommand : Command() {
                         }
 
                         controller.addRolesToMember(member, role).queue({
-                            MC.sendFormattedMessage("%s now has the role **%s**", MC.userCtx.asText, role.name)
+                            MC.sendFormattedMessage("%s now has the role **%s**", MC.userCtx.asText, role.name).queue()
                         })
                     }
                 }

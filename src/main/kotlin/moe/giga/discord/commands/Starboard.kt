@@ -126,6 +126,6 @@ class Starboard : Command() {
     }
 
     companion object {
-        private val DEFAULT_THRESHOLD = 3
+        private const val DEFAULT_THRESHOLD = 3
     }
 }
