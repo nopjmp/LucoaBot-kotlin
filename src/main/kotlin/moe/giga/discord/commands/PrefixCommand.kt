@@ -2,12 +2,14 @@ package moe.giga.discord.commands
 
 import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
+import moe.giga.discord.permissions.AccessLevel
 
 @IsCommand()
 class PrefixCommand : Command() {
     override val name = "prefix"
     override val description = "Changes the prefix to use for commands."
     override val usage = "prefix <prefix text>"
+    override val level = AccessLevel.MOD
 
     override fun onCommand(MC: MessageContext, args: List<String>) {
         val newPrefix = args.first()
