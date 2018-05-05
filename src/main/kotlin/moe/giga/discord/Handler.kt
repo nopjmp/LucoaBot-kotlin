@@ -25,10 +25,12 @@ class Handler internal constructor(builder: JDABuilder, commands: List<Command>)
         }
     }
 
+    private fun mapAlias(command: String): String = aliasMap.getOrDefault(command, command)
+
     private fun containsCommand(SC: ServerContext, message: Message): Boolean {
         return try {
-            val command = commandArgs(message).first()
-            command.startsWith(SC.prefix) && commandMap.containsKey(command.substring(1))
+            val rawCommand = commandArgs(message).first()
+            rawCommand.startsWith(SC.prefix) && commandMap.containsKey(mapAlias(rawCommand.substring(1)))
         } catch (_: NoSuchElementException) {
             false
         }
@@ -43,7 +45,7 @@ class Handler internal constructor(builder: JDABuilder, commands: List<Command>)
     }
 
     private fun resolveCommand(lookupString: String): Command? {
-        val commandName = aliasMap.getOrDefault(lookupString, lookupString)
+        val commandName = mapAlias(lookupString)
         return commandMap[commandName]
     }
 
