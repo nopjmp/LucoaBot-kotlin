@@ -7,6 +7,7 @@ import moe.giga.discord.permissions.AccessLevel
 @IsCommand()
 class RoleSpecCommand : Command() {
     override val name = "rolespec"
+    override val description = "Sets what role gives what permissions (role specification)."
     override val usage = "rolespec <role spec> <role name>"
     override val level = AccessLevel.ADMIN
 
@@ -18,17 +19,17 @@ class RoleSpecCommand : Command() {
             val found = MC.serverCtx.guild.roles.find { it.name.compareTo(roleName, true) == 0 }
 
             if (found == null) {
-                MC.sendError("Could not find the role `$roleName` on this server.")
+                MC.sendError("Could not find the role `$roleName` on this server.").queue()
             } else {
                 if (roleSpec != "mod" || roleSpec != "admin") {
-                    MC.sendError("You can only use `mod` or `admin` for the role spec.")
+                    MC.sendError("You can only use `mod` or `admin` for the role spec.").queue()
                 } else {
                     MC.serverCtx.addSpecRole(roleSpec, roleName)
-                    MC.sendMessage("Role $roleName => $roleSpec permissions")
+                    MC.sendMessage("Role $roleName => $roleSpec permissions").queue()
                 }
             }
         } catch (_: Exception) {
-            MC.sendError("Arguments are incorrect.")
+            MC.sendError("Arguments are incorrect.").queue()
         }
     }
 }

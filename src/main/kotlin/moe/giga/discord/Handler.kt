@@ -11,7 +11,7 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.hooks.SubscribeEvent
 import kotlin.concurrent.timer
 
-class Handler internal constructor(builder: JDABuilder, commands: List<Command>) {
+class Handler internal constructor(builder: JDABuilder, val commands: List<Command>) {
     private val commandMap: Map<String, Command> = commands.associateBy { it.name }
     private val aliasMap: MutableMap<String, String> = HashMap()
 
@@ -65,7 +65,7 @@ class Handler internal constructor(builder: JDABuilder, commands: List<Command>)
                             try {
                                 command.onCommand(mc, args.drop(1).toList())
                             } catch (_: Exception) {
-                                mc.sendError("Exception running command.")
+                                mc.sendError("Exception running command.").queue()
                             }
                         } else {
                             mc.sendError("You are not allowed to run `%s`.").queue()

@@ -18,15 +18,17 @@ import javax.security.auth.login.LoginException
 object LucoaBot {
     //public static final int NORMAL_SHUTDOWN = 0;
 
-    internal const val NEWLY_CREATED_CONFIG = 100
+    internal const val INVALID_SETTINGS = 100
 
     private const val UNABLE_TO_CONNECT = 110
     private const val BAD_TOKEN = 111
 
-    private const val PATH = "lucoa-bot.db"
+    private const val DB_NAME = "lucoa-bot.db"
 
     private lateinit var DSN: String
     private lateinit var config: SQLiteConfig
+
+    lateinit var handler: Handler
 
     val connection: Connection
         @Throws(SQLException::class)
@@ -36,9 +38,10 @@ object LucoaBot {
     fun main(args: Array<String>) {
         if (System.getProperty("file.encoding") == "UTF-8") {
             val settings = SettingsManager.instance.settings
+            val path = "${settings.dbPath}/$DB_NAME"
 
-            DSN = "jdbc:sqlite:$PATH"
-            val file = File(PATH)
+            DSN = "jdbc:sqlite:$path"
+            val file = File(path)
             Logger.info("DB located: " + file.absolutePath)
             config = SQLiteConfig()
             config.setSharedCache(true)
@@ -87,8 +90,10 @@ object LucoaBot {
         try {
             val jdaBuilder = JDABuilder(AccountType.BOT).setToken(settings.botToken)
 
+
+            handler = Handler(jdaBuilder, findCommands())
             jdaBuilder.setEventManager(AnnotatedEventManager())
-            jdaBuilder.addEventListener(Handler(jdaBuilder, findCommands()))
+            jdaBuilder.addEventListener(handler)
 
             jdaBuilder.buildBlocking()
         } catch (e: LoginException) {

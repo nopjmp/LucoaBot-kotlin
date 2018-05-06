@@ -14,7 +14,7 @@ class PrefixCommand : Command() {
     override fun onCommand(MC: MessageContext, args: List<String>) {
         val newPrefix = args.first()
         if (newPrefix.length > 16) {
-            MC.sendMessage("Prefix cannot be more than 16 characters.")
+            MC.sendMessage("Prefix cannot be more than 16 characters.").queue()
             return
         }
 
@@ -22,9 +22,9 @@ class PrefixCommand : Command() {
             MC.serverCtx.prefix = newPrefix
             MC.serverCtx.save()
 
-            MC.sendMessage("${MC.userCtx.asText} has changed the prefix to `$newPrefix`.")
+            MC.sendMessage("${MC.userCtx.asText} has changed the prefix to `$newPrefix`.").queue()
         } catch (_: Exception) {
-            MC.sendError("Something bad happened while saving the new configuration.")
+            MC.sendError("Something bad happened while saving the new configuration.").queue()
         }
     }
 }

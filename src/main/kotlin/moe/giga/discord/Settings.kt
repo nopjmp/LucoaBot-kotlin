@@ -4,4 +4,5 @@ package moe.giga.discord
 class Settings {
     var botToken: String? = null
     var ownerId: String? = null
+    var dbPath: String? = null
 }

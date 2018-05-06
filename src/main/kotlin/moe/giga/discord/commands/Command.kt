@@ -13,7 +13,8 @@ abstract class Command {
 
     open val name: String = ""
     open val description: String = ""
-    open val usage: String = ""
+    open val usage: String
+        get() = name
     open val aliases: Array<String> = arrayOf()
     open val hidden: Boolean = false
     open val allowBots: Boolean = false

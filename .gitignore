@@ -53,5 +53,5 @@ fabric.properties
 .idea/httpRequests
 
 # App Specific
-config.json
+.env
 lucoa-bot.db
