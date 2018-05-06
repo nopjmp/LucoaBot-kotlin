@@ -1,6 +1,7 @@
 package moe.giga.discord.contexts
 
 import moe.giga.discord.LucoaBot
+import moe.giga.discord.permissions.AccessLevel
 import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.User
@@ -22,7 +23,7 @@ class ServerContext(val guild: Guild) {
 
     var logChannel: String? = ""
 
-    internal fun serverRoles(): Map<String, String>? {
+    private fun serverRoles(): Map<String, String> {
         try {
             LucoaBot.connection.use { c ->
                 val statement = c.prepareStatement("SELECT * FROM servers_roles WHERE server_id = ?")
@@ -39,7 +40,7 @@ class ServerContext(val guild: Guild) {
         } catch (e: SQLException) {
             e.printStackTrace()
         }
-        return null
+        return mapOf()
     }
 
     init {
@@ -87,20 +88,20 @@ class ServerContext(val guild: Guild) {
         }
     }
 
-    internal fun deleteSpecRole(id: String) {
-        try {
-            LucoaBot.connection.use { c ->
-                c.prepareStatement("DELETE FROM servers_roles WHERE server_id = ? AND role_id = ?").apply {
-                    setString(1, guild.id)
-                    setString(2, id)
-
-                    executeUpdate()
-                }
-            }
-        } catch (e: SQLException) {
-            e.printStackTrace()
-        }
-    }
+//    internal fun deleteSpecRole(id: String) {
+//        try {
+//            LucoaBot.connection.use { c ->
+//                c.prepareStatement("DELETE FROM servers_roles WHERE server_id = ? AND role_id = ?").apply {
+//                    setString(1, guild.id)
+//                    setString(2, id)
+//
+//                    executeUpdate()
+//                }
+//            }
+//        } catch (e: SQLException) {
+//            e.printStackTrace()
+//        }
+//    }
 
     internal fun addSelfRole(group: String, id: String) {
         try {
@@ -173,5 +174,23 @@ class ServerContext(val guild: Guild) {
         }
     }
 
-    fun getMember(user: User): Member? = guild.getMember(user)
+    internal fun getMember(user: User): Member? = guild.getMember(user)
+    internal fun resolvePermissions(user: User): AccessLevel {
+        val roles = serverRoles().mapValues { guild.getRoleById(it.value) }
+        val member = getMember(user)
+        if (member != null) {
+            if (roles["admin"] != null) {
+                if (member.roles.contains(roles["admin"])) {
+                    return AccessLevel.ADMIN
+                }
+            }
+
+            if (roles["mod"] != null) {
+                if (member.roles.contains(roles["mod"])) {
+                    return AccessLevel.MOD
+                }
+            }
+        }
+        return AccessLevel.USER
+    }
 }

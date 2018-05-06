@@ -23,7 +23,7 @@ object LucoaBot {
     private const val UNABLE_TO_CONNECT = 110
     private const val BAD_TOKEN = 111
 
-    private const val DB_NAME = "lucoa-bot.db"
+    private const val DB_NAME = "lucoa-data.db"
 
     private lateinit var DSN: String
     private lateinit var config: SQLiteConfig
