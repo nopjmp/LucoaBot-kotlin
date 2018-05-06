@@ -49,11 +49,11 @@ jar {
 }
 
 task fatJar(type: Jar) {
+    baseName = project.name + '-withDependencies'
     manifest {
         attributes 'Implementation-Version': version
         attributes 'Main-Class': 'moe.giga.discord.LucoaBot'
     }
-    baseName = project.name + '-withDependencies'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }

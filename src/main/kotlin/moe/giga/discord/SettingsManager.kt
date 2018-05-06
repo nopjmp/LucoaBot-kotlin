@@ -7,14 +7,18 @@ class SettingsManager private constructor() {
     var settings: Settings
         private set
 
-    private val dotenv = dotenv()
+    private val dotenv = dotenv {
+        directory = "./"
+        ignoreIfMalformed = true
+        ignoreIfMissing = true
+    }
 
     private val envSettings: Settings
         get() {
             val newSettings = Settings()
             newSettings.botToken = dotenv["DISCORD_TOKEN"]
             newSettings.ownerId = dotenv["DISCORD_OWNER"]
-            newSettings.dbPath = dotenv["DISCORD_DBPATH"]
+            newSettings.dbPath = dotenv["DATA_PATH"]
             return newSettings
         }
 
