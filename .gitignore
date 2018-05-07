@@ -54,4 +54,6 @@ fabric.properties
 
 # App Specific
 .env
-lucoa-bot.db
+lucoa-data.db
+
+*.bak

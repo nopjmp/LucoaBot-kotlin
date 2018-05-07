@@ -7,14 +7,16 @@ import moe.giga.discord.permissions.AccessLevel
 import moe.giga.discord.util.MiscUtils
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDABuilder
-import net.dv8tion.jda.core.entities.*
+import net.dv8tion.jda.core.entities.EmbedType
+import net.dv8tion.jda.core.entities.Guild
+import net.dv8tion.jda.core.entities.Message
+import net.dv8tion.jda.core.entities.MessageEmbed
 import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionAddEvent
 import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionRemoveAllEvent
 import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionRemoveEvent
 import net.dv8tion.jda.core.hooks.SubscribeEvent
 import java.awt.Color
 import java.util.concurrent.ConcurrentHashMap
-import java.util.stream.Collectors
 
 @IsCommand
 class Starboard : Command() {
@@ -74,20 +76,19 @@ class Starboard : Command() {
         return embed.build()
     }
 
-    private fun onReaction(guild: Guild, messageId: Long, message: Message, messageReactions: List<MessageReaction>) {
+    private fun onReaction(guild: Guild, messageId: Long, message: Message, count: Int) {
         val sc = ServerContext(guild)
 
         if (sc.starChannel != null && sc.starChannel != message.channel.id) {
             val entry = snowflakeAssocMap[messageId]
 
-            if (messageReactions.size < DEFAULT_THRESHOLD) {
+            if (count < DEFAULT_THRESHOLD) {
                 if (entry != null) {
                     snowflakeAssocMap.remove(messageId)
                     val channel = guild.getTextChannelById(entry.channelId)
                     channel.getMessageById(entry.messageId).queue { it.delete().queue() }
                 }
             } else {
-                val count = messageReactions.size
                 val text = makeText(message, count)
                 val embed = makeEmbed(message, count)
 
@@ -107,25 +108,23 @@ class Starboard : Command() {
     @SubscribeEvent
     fun addReactionEvent(event: GuildMessageReactionAddEvent) {
         val message = event.channel.getMessageById(event.messageIdLong).complete()
-        val messageReactions = message.reactions.stream()
-                .filter { reaction -> reaction.reactionEmote.name!!.contentEquals("⭐") }
-                .collect(Collectors.toList())
-        this.onReaction(event.guild, event.messageIdLong, message, messageReactions)
+        val starReaction = message.reactions.find { it.reactionEmote.name == "⭐" }
+        if (starReaction != null)
+            this.onReaction(event.guild, event.messageIdLong, message, starReaction.count)
     }
 
     @SubscribeEvent
     fun removeReactionEvent(event: GuildMessageReactionRemoveEvent) {
         val message = event.channel.getMessageById(event.messageIdLong).complete()
-        val messageReactions = message.reactions.stream()
-                .filter { reaction -> reaction.reactionEmote.name!!.contentEquals("⭐") }
-                .collect(Collectors.toList())
-        this.onReaction(event.guild, event.messageIdLong, message, messageReactions)
+        val starReaction = message.reactions.find { it.reactionEmote.name == "⭐" }
+        if (starReaction != null)
+            this.onReaction(event.guild, event.messageIdLong, message, starReaction.count)
     }
 
     @SubscribeEvent
     fun removeAllReactionEvent(event: GuildMessageReactionRemoveAllEvent) {
         val message = event.channel.getMessageById(event.messageIdLong).complete()
-        this.onReaction(event.guild, event.messageIdLong, message, emptyList())
+        this.onReaction(event.guild, event.messageIdLong, message, 0)
     }
 
     companion object {
