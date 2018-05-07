@@ -38,6 +38,7 @@ class Starboard : Command() {
                 val channel = MC.serverCtx.guild.getTextChannelsByName(args[0], true)[0]
                 if (channel != null) {
                     MC.serverCtx.starChannel = channel.id
+                    MC.serverCtx.save()
                     MC.sendMessage(String.format("Star channel set to %s", channel.asMention)).queue()
                 }
             }
