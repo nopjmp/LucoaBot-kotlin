@@ -1,7 +1,8 @@
 package moe.giga.discord.contexts
 
 import moe.giga.discord.LucoaBot
-import moe.giga.discord.permissions.AccessLevel
+import moe.giga.discord.util.AccessLevel
+import moe.giga.discord.util.EventLogType
 import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.User
@@ -192,5 +193,63 @@ class ServerContext(val guild: Guild) {
             }
         }
         return AccessLevel.USER
+    }
+
+    internal fun deleteEventLog(channel: String) {
+        try {
+            LucoaBot.connection.use { c ->
+                val statement = c.prepareStatement("DELETE FROM servers_log WHERE server_id = ? AND channel_id = ?")
+                statement.setString(1, guild.id)
+                statement.setString(2, channel)
+                statement.executeUpdate()
+            }
+        } catch (e: SQLException) {
+            e.printStackTrace()
+        }
+    }
+
+    internal fun setEventLog(eventLogType: EventLogType, channel: String): Boolean {
+        try {
+            LucoaBot.connection.use { c ->
+                val checkStatement = c.prepareStatement("SELECT channel_id FROM servers_logs WHERE server_id = ? AND event_name = '*'")
+                checkStatement.setString(1, guild.id)
+
+                val checkResult = checkStatement.executeQuery()
+                if (checkResult.next()) {
+                    val allChannel = checkResult.getString("channel_id")
+                    if (allChannel == channel) {
+                        return false
+                    }
+                }
+
+                val statement = c.prepareStatement("INSERT INTO servers_logs (server_id, event_name, channel_id) VALUES (?, ?, ?)")
+                statement.setString(1, guild.id)
+                statement.setString(2, eventLogType.toString())
+                statement.setString(3, channel)
+                return statement.executeUpdate() > 0
+            }
+        } catch (e: SQLException) {
+            e.printStackTrace()
+        }
+        return false
+    }
+
+    internal fun logEvent(eventLogType: EventLogType): List<String> {
+        try {
+            LucoaBot.connection.use { c ->
+                val statement = c.prepareStatement("SELECT channel_id FROM servers_logs WHERE server_id = ? AND (event_name = ? OR event_name = '*')")
+                statement.setString(1, guild.id)
+                statement.setString(2, eventLogType.toString())
+
+                val results = statement.executeQuery()
+                val list = ArrayList<String>()
+                while (results.next())
+                    list.add(results.getString("channel_id"))
+                return list
+            }
+        } catch (e: SQLException) {
+            e.printStackTrace()
+        }
+        return listOf()
     }
 }

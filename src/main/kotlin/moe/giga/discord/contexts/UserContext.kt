@@ -1,7 +1,7 @@
 package moe.giga.discord.contexts
 
 import moe.giga.discord.SettingsManager
-import moe.giga.discord.permissions.AccessLevel
+import moe.giga.discord.util.AccessLevel
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.User
 

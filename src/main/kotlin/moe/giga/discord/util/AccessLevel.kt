@@ -1,4 +1,4 @@
-package moe.giga.discord.permissions
+package moe.giga.discord.util
 
 enum class AccessLevel {
     USER, MOD, ADMIN, ROOT;

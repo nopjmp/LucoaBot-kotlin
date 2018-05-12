@@ -3,7 +3,7 @@ package moe.giga.discord.commands
 import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.contexts.ServerContext
-import moe.giga.discord.permissions.AccessLevel
+import moe.giga.discord.util.AccessLevel
 import moe.giga.discord.util.MiscUtils
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDABuilder
