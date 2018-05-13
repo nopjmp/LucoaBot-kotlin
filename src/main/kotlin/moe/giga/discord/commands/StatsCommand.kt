@@ -1,5 +1,6 @@
 package moe.giga.discord.commands
 
+import moe.giga.discord.LucoaBot
 import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.util.MiscUtils
@@ -46,10 +47,10 @@ class StatsCommand : Command() {
 
         val owner = MC.jda.asBot().applicationInfo.complete().owner
 
-        val guilds = MC.jda.guilds
+        val guilds = MC.jda.guildCache
 
         val memberCount = guilds.stream()
-                .map({ guild -> guild.members.size })
+                .map({ guild -> guild.memberCache.size() })
                 .reduce(0, { a, b -> a!! + b!! })
 
         MC.sendMessage(EmbedBuilder().setColor(3447003)
@@ -57,8 +58,11 @@ class StatsCommand : Command() {
                 .addField("Owner", MiscUtils.username(owner), true)
                 .addField("Uptime", uptimeStr, true)
                 .addField("Bot ID", bot.id, true)
+                .addField("Commands", LucoaBot.handler.commands.size.toString(), true)
+                .addField("Messages", LucoaBot.statistics.messages.get().toString(), true)
+                .addField("Commands Processed", LucoaBot.statistics.processedCommands.get().toString(), true)
                 .addField("Memory Usage", memoryStr, true)
-                .addField("Servers", guilds.size.toString(), true)
+                .addField("Servers", guilds.size().toString(), true)
                 .addField("Users", memberCount.toString(), true)
                 .build()).queue()
     }

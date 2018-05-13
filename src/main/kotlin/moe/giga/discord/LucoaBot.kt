@@ -34,6 +34,8 @@ object LucoaBot {
         @Throws(SQLException::class)
         get() = DriverManager.getConnection(DSN, config.toProperties())
 
+    val statistics = BotStatistics()
+
     @JvmStatic
     fun main(args: Array<String>) {
         if (System.getProperty("file.encoding") == "UTF-8") {

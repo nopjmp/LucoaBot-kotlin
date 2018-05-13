@@ -52,6 +52,7 @@ class Handler internal constructor(builder: JDABuilder, val commands: List<Comma
     // TODO: allow multiple word commands, probably will need a trie structure to find the commands, or regex lol
     @SubscribeEvent
     fun handleMessage(event: MessageReceivedEvent) {
+        LucoaBot.statistics.incrementMessages()
         if (!event.isWebhookMessage && event.author != event.jda.selfUser) {
             val serverContext = ServerContext(event.guild)
             if (containsCommand(serverContext.prefix, event.message)) {
@@ -63,6 +64,7 @@ class Handler internal constructor(builder: JDABuilder, val commands: List<Comma
                         val mc = MessageContext.Builder().event(event).serverContext(serverContext).build()
                         if (mc.userCtx.allowed(command.level)) {
                             try {
+                                LucoaBot.statistics.incrementCommands()
                                 command.onCommand(mc, args.drop(1).toList())
                             } catch (_: Exception) {
                                 mc.sendError("Exception running command.").queue()
