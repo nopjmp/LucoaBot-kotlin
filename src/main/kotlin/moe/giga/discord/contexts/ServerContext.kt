@@ -1,7 +1,7 @@
 package moe.giga.discord.contexts
 
-import moe.giga.discord.LucoaBot
 import moe.giga.discord.util.AccessLevel
+import moe.giga.discord.util.Database
 import moe.giga.discord.util.EventLogType
 import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.Member
@@ -21,22 +21,34 @@ class ServerContext(val guild: Guild) {
         }
 
     var starChannel: String? = ""
-
     var logChannel: String? = ""
+
+    companion object {
+        const val FETCH_SERVER_ROLES = "serverRolesOp"
+        const val FETCH_SERVER = "serverOp"
+        const val FETCH_SELF_ROLES = "serverSelfRolesOp"
+        const val INSERT_SERVER = "serverAddOp"
+        const val INSERT_ROLE_SPEC = "serverRoleSpecAddOp"
+        const val INSERT_SELF_ROLE = "serverSelfRoleAddOp"
+        const val DELETE_SELF_ROLE = "serverSelfRoleDeleteOp"
+        const val SAVE_SERVER = "serverSaveOp"
+        const val FETCH_STAR_EVENT_LOG = "serverEventLogFetchStarOp"
+        const val FETCH_EVENT_LOG = "serverEventLogFetchOp"
+        const val DELETE_EVENT_LOG = "serverEventLogDeleteOp"
+        const val UPDATE_EVENT_LOG = "serverEventLogUpdateOp"
+    }
 
     private fun serverRoles(): Map<String, String> {
         try {
-            LucoaBot.connection.use { c ->
-                val statement = c.prepareStatement("SELECT * FROM servers_roles WHERE server_id = ?")
-                statement.setString(1, guild.id)
-
-                val results = statement.executeQuery()
+            return Database.withStatement(FETCH_SERVER_ROLES) {
+                setString(1, guild.id)
+                val results = executeQuery()
                 val roles = HashMap<String, String>()
                 while (results.next()) {
                     roles[results.getString("role_spec")] = results.getString("role_id")
                 }
 
-                return roles
+                roles
             }
         } catch (e: SQLException) {
             e.printStackTrace()
@@ -50,18 +62,16 @@ class ServerContext(val guild: Guild) {
 
     private fun attachData() {
         try {
-            LucoaBot.connection.use { c ->
-                val statement = c.prepareStatement("SELECT * FROM servers WHERE server_id = ?")
-                statement.setString(1, guild.id)
+            Database.withStatement(FETCH_SERVER) {
+                setString(1, guild.id)
 
-                val rs = statement.executeQuery()
+                val rs = executeQuery()
                 if (rs.next()) {
                     prefix = rs.getString("prefix")
                     logChannel = rs.getString("log_channel")
                     starChannel = rs.getString("star_channel")
                 } else {
-                    val createStatement = c.prepareStatement("insert into servers (server_id, prefix, log_channel, star_channel) values (?, \".\", null, null)")
-                    with(createStatement) {
+                    Database.withStatement(INSERT_SERVER) {
                         setString(1, guild.id)
 
                         executeUpdate()
@@ -75,45 +85,25 @@ class ServerContext(val guild: Guild) {
 
     internal fun addSpecRole(spec: String, id: String) {
         try {
-            LucoaBot.connection.use { c ->
-                c.prepareStatement("INSERT OR REPLACE INTO servers_roles(server_id, role_spec, role_id) VALUES (?, ?, ?)").apply {
-                    setString(1, guild.id)
-                    setString(2, spec)
-                    setString(3, id)
+            Database.withStatement(INSERT_ROLE_SPEC) {
+                setString(1, guild.id)
+                setString(2, spec)
+                setString(3, id)
 
-                    executeUpdate()
-                }
+                executeUpdate()
             }
         } catch (e: SQLException) {
             e.printStackTrace()
         }
     }
 
-//    internal fun deleteSpecRole(id: String) {
-//        try {
-//            LucoaBot.connection.use { c ->
-//                c.prepareStatement("DELETE FROM servers_roles WHERE server_id = ? AND role_id = ?").apply {
-//                    setString(1, guild.id)
-//                    setString(2, id)
-//
-//                    executeUpdate()
-//                }
-//            }
-//        } catch (e: SQLException) {
-//            e.printStackTrace()
-//        }
-//    }
-
     internal fun addSelfRole(group: String, id: String) {
         try {
-            LucoaBot.connection.use { c ->
-                c.prepareStatement("INSERT OR REPLACE INTO servers_self_roles(server_id, role_spec, role_id) VALUES (?, ?, ?)").apply {
-                    setString(1, guild.id)
-                    setString(2, group)
-                    setString(3, id)
-
-                    executeUpdate()
-                }
+            Database.withStatement(INSERT_SELF_ROLE) {
+                setString(1, guild.id)
+                setString(2, group)
+                setString(3, id)
+                executeUpdate()
             }
         } catch (e: SQLException) {
             e.printStackTrace()
@@ -122,13 +112,10 @@ class ServerContext(val guild: Guild) {
 
     internal fun deleteSelfRole(id: String) {
         try {
-            LucoaBot.connection.use { c ->
-                c.prepareStatement("DELETE FROM servers_self_roles WHERE server_id = ? AND role_id = ?").apply {
-                    setString(1, guild.id)
-                    setString(2, id)
-
-                    executeUpdate()
-                }
+            Database.withStatement(DELETE_SELF_ROLE) {
+                setString(1, guild.id)
+                setString(2, id)
+                executeUpdate()
             }
         } catch (e: SQLException) {
             e.printStackTrace()
@@ -138,11 +125,10 @@ class ServerContext(val guild: Guild) {
 
     internal fun getServerSelfRoles(): Map<String, List<String>> {
         try {
-            LucoaBot.connection.use { c ->
-                val statement = c.prepareStatement("SELECT * FROM servers_self_roles WHERE server_id = ?")
-                statement.setString(1, guild.id)
+            return Database.withStatement(FETCH_SELF_ROLES) {
+                setString(1, guild.id)
 
-                val results = statement.executeQuery()
+                val results = executeQuery()
                 val roleList = ArrayList<Pair<String, String>>()
                 while (results.next()) {
                     val roleSpec = results.getString("role_spec")
@@ -150,7 +136,7 @@ class ServerContext(val guild: Guild) {
 
                     roleList.add(Pair(roleSpec, roleId))
                 }
-                return roleList.groupBy({ it.first }, { it.second })
+                roleList.groupBy({ it.first }, { it.second })
             }
         } catch (e: SQLException) {
             e.printStackTrace()
@@ -161,14 +147,12 @@ class ServerContext(val guild: Guild) {
 
     fun save() {
         try {
-            LucoaBot.connection.use { c ->
-                val statement = c.prepareStatement("UPDATE servers SET prefix = ?, star_channel = ?, log_channel = ? WHERE server_id = ?")
-                statement.setString(1, prefix)
-                statement.setString(2, starChannel)
-                statement.setString(3, logChannel)
-                statement.setString(4, guild.id)
-
-                statement.executeUpdate()
+            Database.withStatement(SAVE_SERVER) {
+                setString(1, prefix)
+                setString(2, starChannel)
+                setString(3, logChannel)
+                setString(4, guild.id)
+                executeUpdate()
             }
         } catch (e: SQLException) {
             e.printStackTrace()
@@ -197,11 +181,10 @@ class ServerContext(val guild: Guild) {
 
     internal fun deleteEventLog(channel: String) {
         try {
-            LucoaBot.connection.use { c ->
-                val statement = c.prepareStatement("DELETE FROM servers_log WHERE server_id = ? AND channel_id = ?")
-                statement.setString(1, guild.id)
-                statement.setString(2, channel)
-                statement.executeUpdate()
+            Database.withStatement(DELETE_EVENT_LOG) {
+                setString(1, guild.id)
+                setString(2, channel)
+                executeUpdate()
             }
         } catch (e: SQLException) {
             e.printStackTrace()
@@ -210,23 +193,21 @@ class ServerContext(val guild: Guild) {
 
     internal fun setEventLog(eventLogType: EventLogType, channel: String): Boolean {
         try {
-            LucoaBot.connection.use { c ->
-                val checkStatement = c.prepareStatement("SELECT channel_id FROM servers_logs WHERE server_id = ? AND event_name = '*'")
-                checkStatement.setString(1, guild.id)
-
-                val checkResult = checkStatement.executeQuery()
+            Database.withStatement(FETCH_STAR_EVENT_LOG) {
+                val checkResult = executeQuery()
                 if (checkResult.next()) {
                     val allChannel = checkResult.getString("channel_id")
                     if (allChannel == channel) {
                         return false
                     }
                 }
+            }
 
-                val statement = c.prepareStatement("INSERT INTO servers_logs (server_id, event_name, channel_id) VALUES (?, ?, ?)")
-                statement.setString(1, guild.id)
-                statement.setString(2, eventLogType.toString())
-                statement.setString(3, channel)
-                return statement.executeUpdate() > 0
+            return Database.withStatement(UPDATE_EVENT_LOG) {
+                setString(1, guild.id)
+                setString(2, eventLogType.toString())
+                setString(3, channel)
+                executeUpdate() > 0
             }
         } catch (e: SQLException) {
             e.printStackTrace()
@@ -236,16 +217,15 @@ class ServerContext(val guild: Guild) {
 
     internal fun logEvent(eventLogType: EventLogType): List<String> {
         try {
-            LucoaBot.connection.use { c ->
-                val statement = c.prepareStatement("SELECT channel_id FROM servers_logs WHERE server_id = ? AND (event_name = ? OR event_name = '*')")
-                statement.setString(1, guild.id)
-                statement.setString(2, eventLogType.toString())
+            return Database.withStatement(FETCH_EVENT_LOG) {
+                setString(1, guild.id)
+                setString(2, eventLogType.toString())
 
-                val results = statement.executeQuery()
+                val results = executeQuery()
                 val list = ArrayList<String>()
                 while (results.next())
                     list.add(results.getString("channel_id"))
-                return list
+                list
             }
         } catch (e: SQLException) {
             e.printStackTrace()
