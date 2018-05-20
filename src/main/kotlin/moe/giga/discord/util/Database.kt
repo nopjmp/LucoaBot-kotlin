@@ -14,7 +14,7 @@ object Database {
     private val connection: Connection
     private const val DB_NAME = "lucoa-data.db"
 
-    private val preparedStatements: HashMap<String, PreparedStatement>;
+    private val preparedStatements: HashMap<String, PreparedStatement>
 
     init {
         val settings = SettingsManager.instance.settings
