@@ -12,10 +12,10 @@ class PrefixCommand : Command() {
     override val level = AccessLevel.MOD
 
     override fun onCommand(MC: MessageContext, args: List<String>) {
-        val newPrefix = args.first()
-        if (newPrefix.length > 16) {
-            MC.sendMessage("Prefix cannot be more than 16 characters.").queue()
-            return
+        val newPrefix = args.firstOrNull() ?: ""
+        when {
+            newPrefix.isEmpty() -> throw IllegalArgumentException("Prefix must be at least 1 character.")
+            newPrefix.length > 16 -> throw IllegalArgumentException("Prefix cannot be more than 16 characters.")
         }
 
         try {

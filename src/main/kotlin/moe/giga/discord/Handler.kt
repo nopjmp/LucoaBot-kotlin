@@ -66,7 +66,7 @@ class Handler internal constructor(builder: JDABuilder, val commands: List<Comma
                                 LucoaBot.statistics.incrementCommands()
                                 it.onCommand(mc, args.drop(1).toList())
                             } catch (e: IllegalArgumentException) {
-                                mc.sendError(e.message ?: "Invalid Arguments")
+                                mc.sendError(e.message ?: "Invalid Arguments").queue()
                             } catch (e: Exception) {
                                 Logger.warn("Command exception: ${e.message ?: "(null)"}")
                                 mc.sendError("Unknown Exception running command.").queue()

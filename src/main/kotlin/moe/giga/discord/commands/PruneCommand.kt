@@ -17,7 +17,7 @@ class PruneCommand : Command() {
 
     override fun onCommand(MC: MessageContext, args: List<String>) {
         try {
-            val num = Integer.valueOf(args.first())
+            val num = args.first().toInt()
             when {
                 MC.channel.type == ChannelType.TEXT ->
                     MC.channel.history.retrievePast(num + 1).queue {

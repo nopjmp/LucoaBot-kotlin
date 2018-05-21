@@ -12,24 +12,16 @@ class RoleSpecCommand : Command() {
     override val level = AccessLevel.ADMIN
 
     override fun onCommand(MC: MessageContext, args: List<String>) {
-        try {
-            val roleSpec = args.first()
-            val roleName = args[1]
+        val roleSpec = args.first()
+        val roleName = args[1]
 
-            val found = MC.serverCtx.guild.roles.find { it.name.compareTo(roleName, true) == 0 }
-
-            if (found == null) {
-                MC.sendError("Could not find the role `$roleName` on this server.").queue()
-            } else {
-                if (roleSpec != "mod" || roleSpec != "admin") {
-                    MC.sendError("You can only use `mod` or `admin` for the role spec.").queue()
-                } else {
-                    MC.serverCtx.addSpecRole(roleSpec, roleName)
-                    MC.sendMessage("Role $roleName => $roleSpec permissions").queue()
-                }
-            }
-        } catch (_: Exception) {
-            MC.sendError("Arguments are incorrect.").queue()
+        if (roleSpec != "mod" || roleSpec != "admin") {
+            MC.sendError("You can only use `mod` or `admin` for the role spec.").queue()
+        } else {
+            val role = MC.serverCtx.guild.roles.find { it.name.compareTo(roleName, true) == 0 }
+                    ?: throw IllegalArgumentException("`$roleName` not role as a role on this server.")
+            MC.serverCtx.addSpecRole(roleSpec, role.name)
+            MC.sendMessage("Role ${role.name} => $roleSpec permissions").queue()
         }
     }
 }

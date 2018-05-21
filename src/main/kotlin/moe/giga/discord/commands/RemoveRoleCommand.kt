@@ -16,15 +16,14 @@ class RemoveRoleCommand : Command() {
         val roleName = args.first()
 
         val foundRole = MC.serverCtx.guild.roles.find { it.name.compareTo(roleName, true) == 0 }
-        if (foundRole != null) {
-            if (MC.serverCtx.getServerSelfRoles().count { it.value.contains(foundRole.id) } > 0) {
-                MC.serverCtx.deleteSelfRole(foundRole.id)
+                ?: throw IllegalArgumentException("`$roleName` not found as a role on this server.")
 
-                MC.sendMessage("**${foundRole.name}** is no longer self assignable.").queue()
-                return
-            }
+        if (MC.serverCtx.getServerSelfRoles().count { it.value.contains(foundRole.id) } > 0) {
+            MC.serverCtx.deleteSelfRole(foundRole.id)
+
+            MC.sendMessage("**${foundRole.name}** is no longer self assignable.").queue()
+        } else {
+            throw IllegalArgumentException("`$roleName` not found as a self-assignable role on this server.")
         }
-
-        MC.sendError("`$roleName` not found as a role on this server.").queue()
     }
 }

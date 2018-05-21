@@ -50,7 +50,7 @@ class XKCDCommand : Command() {
                     }, errorAction)
                 }
                 else -> {
-                    val num = Integer.valueOf(args.first())
+                    val num = args.first().toInt()
                     fetchData("https://xkcd.com/info.$num.json", {
                         success(Gson().fromJson(it?.body()?.charStream(), XKCDData::class.java))
                     }, errorAction)

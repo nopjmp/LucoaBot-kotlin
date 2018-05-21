@@ -13,13 +13,6 @@ import kotlin.collections.ArrayList
 // log events structure?
 class ServerContext(val guild: Guild) {
     var prefix: String = "."
-        set(value) {
-            if (value.isEmpty()) {
-                throw IllegalArgumentException("Prefix was invalid!")
-            }
-            field = value
-        }
-
     var starChannel: String? = ""
     var logChannel: String? = ""
 
