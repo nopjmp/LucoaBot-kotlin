@@ -23,7 +23,7 @@ class IamNotCommand : Command() {
                 val member = MC.userCtx.member
                 if (member != null) {
                     if (!member.roles.contains(role)) {
-                        MC.sendError("%s... You don't already have **%s**.", MC.userCtx.asText, role.name).queue()
+                        MC.sendError("${MC.userCtx.asText}... You don't already have **${role.name}**.").queue()
                     } else {
                         MC.serverCtx.guild.controller.removeRolesFromMember(member, role).queue({
                             MC.sendMessage("${MC.userCtx.asText} no longer has **${role.name}**").queue()
@@ -34,6 +34,6 @@ class IamNotCommand : Command() {
             }
         }
 
-        MC.sendError("`%s` not found as a role on this server.", roleName).queue()
+        MC.sendError("`$roleName` not found as a role on this server.").queue()
     }
 }

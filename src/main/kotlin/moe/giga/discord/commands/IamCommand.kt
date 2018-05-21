@@ -12,42 +12,30 @@ class IamCommand : Command() {
 
     override fun onCommand(MC: MessageContext, args: List<String>) {
         val roleName = args.joinToString(separator = " ")
-        try {
-            val foundRoles = MC.serverCtx.guild.getRolesByName(roleName, true)
-            if (foundRoles.count() > 0) {
-                val role = foundRoles.first()
+        val foundRoles = MC.serverCtx.guild.getRolesByName(roleName, true)
+        val role = foundRoles.firstOrNull()
+                ?: throw IllegalArgumentException("`$roleName` not found as a role on this server.")
 
-                val selfRoles = MC.serverCtx.getServerSelfRoles()
-                val key = selfRoles
-                        .filterValues { it.contains(role.id) }
-                        .map { it.key }
-                        .first()
+        val selfRoles = MC.serverCtx.getServerSelfRoles()
+        val key = selfRoles
+                .filterValues { it.contains(role.id) }
+                .map { it.key }
+                .first()
 
-                val member = MC.userCtx.member
-                if (member != null) {
-                    if (member.roles.contains(role)) {
-                        MC.sendError("%s... You already have **%s**.", MC.userCtx.asText, role.name).queue()
-                    } else {
+        val member = MC.userCtx.member ?: throw IllegalArgumentException("Internal Error: Member not found on server.")
+        if (member.roles.contains(role)) {
+            MC.sendError("${MC.userCtx.asText}... You already have **${role.name}**.").queue()
+        } else {
+            val controller = MC.serverCtx.guild.controller
 
-                        val controller = MC.serverCtx.guild.controller
-
-                        if (key != "default") {
-                            val filtered = member.roles.filter { selfRoles.getValue(key).contains(it.id) }
-                            controller.removeRolesFromMember(member, filtered).queue()
-                        }
-
-                        controller.addRolesToMember(member, role).queue({
-                            MC.sendMessage("${MC.userCtx.asText} now has the role **${role.name}**").queue()
-                        })
-                    }
-                }
+            if (key != "default") {
+                val filtered = member.roles.filter { selfRoles.getValue(key).contains(it.id) }
+                controller.removeRolesFromMember(member, filtered).queue()
             }
 
-            return
-        } catch (e: NoSuchElementException) {
-            // fall through
+            controller.addRolesToMember(member, role).queue({
+                MC.sendMessage("${MC.userCtx.asText} now has the role **${role.name}**").queue()
+            })
         }
-
-        MC.sendError("`%s` not found as a role on this server.", roleName).queue()
     }
 }

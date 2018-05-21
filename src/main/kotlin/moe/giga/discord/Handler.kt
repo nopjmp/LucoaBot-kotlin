@@ -9,6 +9,7 @@ import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.events.ReadyEvent
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.hooks.SubscribeEvent
+import org.pmw.tinylog.Logger
 import kotlin.concurrent.timer
 
 class Handler internal constructor(builder: JDABuilder, val commands: List<Command>) {
@@ -57,17 +58,18 @@ class Handler internal constructor(builder: JDABuilder, val commands: List<Comma
             val serverContext = ServerContext(event.guild)
             if (containsCommand(serverContext.prefix, event.message)) {
                 val args = commandArgs(event.message)
-                val command = resolveCommand(args.first().substring(serverContext.prefix.length))
-
-                if (command != null) {
-                    if (!event.author.isBot || command.allowBots) {
+                resolveCommand(args.first().substring(serverContext.prefix.length))?.let {
+                    if (!event.author.isBot || it.allowBots) {
                         val mc = MessageContext.Builder().event(event).serverContext(serverContext).build()
-                        if (mc.userCtx.allowed(command.level)) {
+                        if (mc.userCtx.allowed(it.level)) {
                             try {
                                 LucoaBot.statistics.incrementCommands()
-                                command.onCommand(mc, args.drop(1).toList())
-                            } catch (_: Exception) {
-                                mc.sendError("Exception running command.").queue()
+                                it.onCommand(mc, args.drop(1).toList())
+                            } catch (e: IllegalArgumentException) {
+                                mc.sendError(e.message ?: "Invalid Arguments")
+                            } catch (e: Exception) {
+                                Logger.warn("Command exception: ${e.message ?: "(null)"}")
+                                mc.sendError("Unknown Exception running command.").queue()
                             }
                         } else {
                             mc.sendError("You are not allowed to run `%s`.").queue()

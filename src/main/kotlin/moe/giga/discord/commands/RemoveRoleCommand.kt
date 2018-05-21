@@ -25,6 +25,6 @@ class RemoveRoleCommand : Command() {
             }
         }
 
-        MC.sendError("`%s` not found as a role on this server.", roleName).queue()
+        MC.sendError("`$roleName` not found as a role on this server.").queue()
     }
 }
