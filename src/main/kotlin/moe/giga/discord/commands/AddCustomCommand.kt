@@ -1,0 +1,45 @@
+package moe.giga.discord.commands
+
+import moe.giga.discord.LucoaBot
+import moe.giga.discord.annotations.IsCommand
+import moe.giga.discord.contexts.MessageContext
+import moe.giga.discord.util.AccessLevel
+import moe.giga.discord.util.Database
+import java.sql.SQLException
+
+@IsCommand
+class AddCustomCommand : Command() {
+    override val name = "addcustom"
+    override val aliases = arrayOf("ac", "acc")
+    override val usage = "addcustom <command> <response>"
+    override val description = "Adds custom commands to be used by anyone"
+    override val level = AccessLevel.MOD
+
+    companion object {
+        const val ADD_CUSTOM_COMMAND = "customCommandAddOp"
+    }
+
+    override fun onCommand(MC: MessageContext, args: List<String>) {
+        val command = args.getOrNull(0)
+                ?: throw IllegalArgumentException("You must supply a command and response.")
+
+        val response = args.drop(1).joinToString(" ")
+        if (response.isEmpty())
+            throw IllegalArgumentException("You must supply a command response.")
+
+        if (LucoaBot.handler.hasCommand(command))
+            throw IllegalArgumentException("You cannot use a command that already exists as a bot command.")
+
+        try {
+            Database.withStatement(ADD_CUSTOM_COMMAND) {
+                setString(1, MC.serverCtx.guild.id)
+                setString(2, command)
+                setString(3, response)
+                executeUpdate()
+                MC.sendMessage("Added command `$command`.").queue()
+            }
+        } catch (e: SQLException) {
+            e.printStackTrace()
+        }
+    }
+}

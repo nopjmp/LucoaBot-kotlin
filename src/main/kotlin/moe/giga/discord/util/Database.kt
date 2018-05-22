@@ -1,6 +1,8 @@
 package moe.giga.discord.util
 
 import moe.giga.discord.SettingsManager
+import moe.giga.discord.commands.AddCustomCommand
+import moe.giga.discord.commands.RemoveCustomCommand
 import moe.giga.discord.contexts.ServerContext
 import org.pmw.tinylog.Logger
 import org.sqlite.SQLiteConfig
@@ -35,7 +37,7 @@ object Database {
         preparedStatements = hashMapOf(
                 ServerContext.FETCH_SERVER_ROLES to connection.prepareStatement("SELECT * FROM servers_roles WHERE server_id = ?"),
                 ServerContext.FETCH_SERVER to connection.prepareStatement("SELECT * FROM servers WHERE server_id = ?"),
-                ServerContext.INSERT_SERVER to connection.prepareStatement("insert into servers (server_id, prefix, log_channel, star_channel) values (?, \".\", null, null)"),
+                ServerContext.INSERT_SERVER to connection.prepareStatement("INSERT INTO servers (server_id, prefix, log_channel, star_channel) VALUES (?, \".\", null, null)"),
                 ServerContext.INSERT_ROLE_SPEC to connection.prepareStatement("INSERT OR REPLACE INTO servers_roles(server_id, role_spec, role_id) VALUES (?, ?, ?)"),
                 ServerContext.INSERT_SELF_ROLE to connection.prepareStatement("INSERT OR REPLACE INTO servers_self_roles(server_id, role_spec, role_id) VALUES (?, ?, ?)"),
                 ServerContext.DELETE_SELF_ROLE to connection.prepareStatement("DELETE FROM servers_self_roles WHERE server_id = ? AND role_id = ?"),
@@ -44,7 +46,10 @@ object Database {
                 ServerContext.DELETE_EVENT_LOG to connection.prepareStatement("DELETE FROM servers_logs WHERE server_id = ? AND channel_id = ?"),
                 ServerContext.FETCH_STAR_EVENT_LOG to connection.prepareStatement("SELECT channel_id FROM servers_logs WHERE server_id = ? AND event_name = '*'"),
                 ServerContext.UPDATE_EVENT_LOG to connection.prepareStatement("INSERT INTO servers_logs (server_id, event_name, channel_id) VALUES (?, ?, ?)"),
-                ServerContext.FETCH_EVENT_LOG to connection.prepareStatement("SELECT channel_id FROM servers_logs WHERE server_id = ? AND (event_name = ? OR event_name = '*')")
+                ServerContext.FETCH_EVENT_LOG to connection.prepareStatement("SELECT channel_id FROM servers_logs WHERE server_id = ? AND (event_name = ? OR event_name = '*')"),
+                ServerContext.FETCH_CUSTOM_COMMANDS to connection.prepareStatement("SELECT command, response FROM custom_commands WHERE server_id = ?"),
+                AddCustomCommand.ADD_CUSTOM_COMMAND to connection.prepareStatement("INSERT INTO custom_commands (server_id, command, response) VALUES (?, ?, ?)"),
+                RemoveCustomCommand.DELETE_CUSTOM_COMMAND to connection.prepareStatement("DELETE FROM custom_commands WHERE server_id = ? AND command = ?")
         )
     }
 

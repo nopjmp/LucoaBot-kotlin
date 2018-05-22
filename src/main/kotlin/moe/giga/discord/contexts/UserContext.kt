@@ -17,7 +17,7 @@ class UserContext(val user: User, serverContext: ServerContext) {
 
     val humanRole: String by lazy { this.permissions.toString() }
 
-    val asText: String by lazy { "**%s#%s**".format(user.name, user.discriminator) }
+    val asText: String by lazy { "**${user.name}#${user.discriminator}**" }
 
     fun allowed(perms: AccessLevel): Boolean {
         return permissions >= perms

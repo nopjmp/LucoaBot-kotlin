@@ -17,6 +17,5 @@ abstract class Command {
         get() = name
     open val aliases: Array<String> = arrayOf()
     open val hidden: Boolean = false
-    open val allowBots: Boolean = false
     open val level: AccessLevel = AccessLevel.USER
 }

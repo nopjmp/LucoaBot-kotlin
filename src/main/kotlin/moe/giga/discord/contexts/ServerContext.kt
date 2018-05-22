@@ -7,8 +7,6 @@ import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.User
 import java.sql.SQLException
-import java.util.*
-import kotlin.collections.ArrayList
 
 // log events structure?
 class ServerContext(val guild: Guild) {
@@ -29,6 +27,7 @@ class ServerContext(val guild: Guild) {
         const val FETCH_EVENT_LOG = "serverEventLogFetchOp"
         const val DELETE_EVENT_LOG = "serverEventLogDeleteOp"
         const val UPDATE_EVENT_LOG = "serverEventLogUpdateOp"
+        const val FETCH_CUSTOM_COMMANDS = "serverCustomCommandsOp"
     }
 
     private fun serverRoles(): Map<String, String> {
@@ -224,5 +223,22 @@ class ServerContext(val guild: Guild) {
             e.printStackTrace()
         }
         return listOf()
+    }
+
+    internal val customCommands by lazy {
+        try {
+            return@lazy Database.withStatement(FETCH_CUSTOM_COMMANDS) {
+                setString(1, guild.id)
+
+                val results = executeQuery()
+                val map = HashMap<String, String>()
+                while (results.next())
+                    map[results.getString("command")] = results.getString("response")
+                map
+            }
+        } catch (e: SQLException) {
+            e.printStackTrace()
+        }
+        hashMapOf<String, String>()
     }
 }
