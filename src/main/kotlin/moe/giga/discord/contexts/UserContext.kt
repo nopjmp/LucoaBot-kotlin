@@ -2,6 +2,7 @@ package moe.giga.discord.contexts
 
 import moe.giga.discord.SettingsManager
 import moe.giga.discord.util.AccessLevel
+import moe.giga.discord.util.username
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.User
 
@@ -17,7 +18,7 @@ class UserContext(val user: User, serverContext: ServerContext) {
 
     val humanRole: String by lazy { this.permissions.toString() }
 
-    val asText: String by lazy { "**${user.name}#${user.discriminator}**" }
+    val asText: String by lazy { "**${user.username()}**" }
 
     fun allowed(perms: AccessLevel): Boolean {
         return permissions >= perms

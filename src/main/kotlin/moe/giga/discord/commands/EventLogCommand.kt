@@ -30,7 +30,7 @@ class EventLogCommand : Command() {
             }
         } else {
             MC.serverCtx.setEventLog(EventLogType.ALL, MC.channel.id)
-            MC.sendMessage(String.format("Event log set to %s", MC.channel.name)).queue()
+            MC.sendMessage("Event log set to ${MC.channel.name}").queue()
             return
         }
         MC.sendError("args invalid?").queue()

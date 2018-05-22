@@ -2,10 +2,10 @@ package moe.giga.discord.commands
 
 import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
+import moe.giga.discord.util.username
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.Permission
-import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.utils.PermissionUtil
 import java.time.Instant
 
@@ -61,6 +61,4 @@ class UserInfoCommand : Command() {
 
         MC.sendMessage(builder.build()).queue()
     }
-
-    private fun User.username() = "${this.name}#${this.discriminator}"
 }

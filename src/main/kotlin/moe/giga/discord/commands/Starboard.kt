@@ -4,7 +4,7 @@ import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.contexts.ServerContext
 import moe.giga.discord.util.AccessLevel
-import moe.giga.discord.util.MiscUtils
+import moe.giga.discord.util.username
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDABuilder
 import net.dv8tion.jda.core.entities.EmbedType
@@ -53,7 +53,7 @@ class Starboard : Command() {
                 if (channel != null) {
                     MC.serverCtx.starChannel = channel.id
                     MC.serverCtx.save()
-                    MC.sendMessage(String.format("Star channel set to %s", channel.asMention)).queue()
+                    MC.sendMessage("Star channel set to ${channel.asMention}").queue()
                     return
                 }
             }
@@ -62,7 +62,7 @@ class Starboard : Command() {
     }
 
     private fun makeText(message: Message, count: Int): String {
-        return String.format("⭐ **%d** %s ID: %d", count, message.textChannel.asMention, message.idLong)
+        return "⭐ **$count** ${message.textChannel.asMention} ID: ${message.idLong}"
     }
 
     private fun makeEmbed(message: Message, count: Int): MessageEmbed {
@@ -70,7 +70,7 @@ class Starboard : Command() {
         val author = message.jda.getUserById(message.author.id)
         val embed = EmbedBuilder()
                 .setColor(Color(255, 255, scale))
-                .setAuthor(MiscUtils.username(author), null, author.effectiveAvatarUrl)
+                .setAuthor(author.username(), null, author.effectiveAvatarUrl)
                 .setDescription(message.contentDisplay)
                 .setTimestamp(message.creationTime)
 

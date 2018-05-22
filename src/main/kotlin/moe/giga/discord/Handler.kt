@@ -83,7 +83,7 @@ class Handler internal constructor(builder: JDABuilder, val commands: List<Comma
                 mc.sendError("Unknown Exception running command.").queue()
             }
         } else {
-            mc.sendError("You are not allowed to run `%s`.").queue()
+            mc.sendError("You are not allowed to run `${command.name}`.").queue()
         }
     }
 
@@ -99,7 +99,7 @@ class Handler internal constructor(builder: JDABuilder, val commands: List<Comma
         val jda = event.jda
         timer(name = "activityUpdate", daemon = true, period = 10000, action = {
             val count = jda.guildCache.map { it.memberCache.count() }.sum()
-            jda.presence.game = Game.watching("%s users".format(count))
+            jda.presence.game = Game.watching("$count users")
         })
     }
 }
