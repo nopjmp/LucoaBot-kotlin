@@ -73,8 +73,8 @@ class Handler internal constructor(builder: JDABuilder, val commands: List<Comma
 
     private fun processCommand(mc: MessageContext, command: Command, args: List<String>) {
         if (mc.userCtx.allowed(command.level)) {
+            LucoaBot.statistics.incrementCommands()
             try {
-                LucoaBot.statistics.incrementCommands()
                 command.onCommand(mc, args)
             } catch (e: IllegalArgumentException) {
                 mc.sendError(e.message ?: "Invalid Arguments").queue()
@@ -91,6 +91,7 @@ class Handler internal constructor(builder: JDABuilder, val commands: List<Comma
         val message = MessageBuilder().append(serverContext.customCommands[name])
                 .stripMentions(event.jda, Message.MentionType.EVERYONE, Message.MentionType.HERE)
                 .build()
+        LucoaBot.statistics.incrementCommands()
         event.channel.sendMessage(message).queue()
     }
 

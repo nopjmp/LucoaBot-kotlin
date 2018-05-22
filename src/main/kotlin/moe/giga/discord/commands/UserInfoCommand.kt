@@ -27,7 +27,7 @@ class UserInfoCommand : Command() {
     )
 
     private fun isApplied(permissions: Long, perms: Permission) =
-            permissions.and(perms.rawValue) == perms.rawValue
+            permissions and perms.rawValue == perms.rawValue
 
     private fun resolveUser(jda: JDA, arg: String) =
             jda.userCache.find { it.id == arg || it.name == arg || it.username() == arg || it.asMention == arg }

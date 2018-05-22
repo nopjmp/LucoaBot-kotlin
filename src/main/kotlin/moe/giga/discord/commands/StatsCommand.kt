@@ -3,7 +3,7 @@ package moe.giga.discord.commands
 import moe.giga.discord.LucoaBot
 import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
-import moe.giga.discord.util.MiscUtils
+import moe.giga.discord.util.username
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDABuilder
 import java.io.IOException
@@ -55,7 +55,7 @@ class StatsCommand : Command() {
 
         MC.sendMessage(EmbedBuilder().setColor(3447003)
                 .setAuthor("LucoaBot $version", bot.avatarUrl)
-                .addField("Owner", MiscUtils.username(owner), true)
+                .addField("Owner", owner.username(), true)
                 .addField("Uptime", uptimeStr, true)
                 .addField("Bot ID", bot.id, true)
                 .addField("Commands", LucoaBot.handler.commands.size.toString(), true)
