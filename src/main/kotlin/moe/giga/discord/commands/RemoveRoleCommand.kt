@@ -13,6 +13,9 @@ class RemoveRoleCommand : Command() {
     override val level = AccessLevel.MOD
 
     override fun onCommand(MC: MessageContext, args: List<String>) {
+        if (MC.serverCtx.guild == null)
+            throw IllegalArgumentException("You can only use this command on a server.")
+
         val roleName = args.first()
 
         val foundRole = MC.serverCtx.guild.roles.find { it.name.compareTo(roleName, true) == 0 }

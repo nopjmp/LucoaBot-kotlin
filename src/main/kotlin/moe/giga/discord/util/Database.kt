@@ -48,6 +48,7 @@ object Database {
                 ServerContext.UPDATE_EVENT_LOG to connection.prepareStatement("INSERT INTO servers_logs (server_id, event_name, channel_id) VALUES (?, ?, ?)"),
                 ServerContext.FETCH_EVENT_LOG to connection.prepareStatement("SELECT channel_id FROM servers_logs WHERE server_id = ? AND (event_name = ? OR event_name = '*')"),
                 ServerContext.FETCH_CUSTOM_COMMANDS to connection.prepareStatement("SELECT command, response FROM custom_commands WHERE server_id = ?"),
+                ServerContext.FIND_CUSTOM_COMMAND to connection.prepareStatement("SELECT response FROM custom_commands WHERE server_id = ? AND command = ?"),
                 AddCustomCommand.ADD_CUSTOM_COMMAND to connection.prepareStatement("INSERT INTO custom_commands (server_id, command, response) VALUES (?, ?, ?)"),
                 RemoveCustomCommand.DELETE_CUSTOM_COMMAND to connection.prepareStatement("DELETE FROM custom_commands WHERE server_id = ? AND command = ?")
         )

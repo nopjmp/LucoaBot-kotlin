@@ -38,7 +38,7 @@ class EventLogCommand : Command() {
 
     // TODO: make embed version?
     private fun notify(serverContext: ServerContext, channelIds: List<String>, message: String) {
-        val channels = channelIds.map { serverContext.guild.getTextChannelById(it) }
+        val channels = channelIds.map { serverContext.guild!!.getTextChannelById(it) }
                 .filter { it != null }
         channels.forEach { it.sendMessage(message).queue() }
     }

@@ -10,7 +10,7 @@ class UserContext(val user: User, serverContext: ServerContext) {
 
     private val permissions: AccessLevel = when {
         user.id == SettingsManager.instance.settings.ownerId -> AccessLevel.ROOT
-        user === serverContext.guild.owner?.user -> AccessLevel.ADMIN
+        user === serverContext.guild?.owner?.user -> AccessLevel.ADMIN
         else -> serverContext.resolvePermissions(user)
     }
 

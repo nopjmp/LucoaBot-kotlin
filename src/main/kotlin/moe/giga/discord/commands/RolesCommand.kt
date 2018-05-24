@@ -20,6 +20,9 @@ class RolesCommand : Command() {
     }
 
     override fun onCommand(MC: MessageContext, args: List<String>) {
+        if (MC.serverCtx.guild == null)
+            throw IllegalArgumentException("You can only use this command on a server.")
+
         val asMention = args.firstOrNull()?.toBoolean() ?: AS_MENTION
         val roles = MC.serverCtx.getServerSelfRoles()
 

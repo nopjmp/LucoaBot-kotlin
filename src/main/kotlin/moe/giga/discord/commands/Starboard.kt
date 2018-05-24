@@ -49,7 +49,7 @@ class Starboard : Command() {
             } else if (argRegex.matches(args[0])) {
                 val matches = argRegex.find(args[0])
                 val channelId = matches?.groups?.get(1)?.value
-                val channel = MC.serverCtx.guild.getTextChannelById(channelId)
+                val channel = MC.serverCtx.guild!!.getTextChannelById(channelId)
                 if (channel != null) {
                     MC.serverCtx.starChannel = channel.id
                     MC.serverCtx.save()
@@ -121,7 +121,7 @@ class Starboard : Command() {
     @SubscribeEvent
     fun addReactionEvent(event: GuildMessageReactionAddEvent) {
         val message = event.channel.getMessageById(event.messageIdLong).complete()
-        if (message.creationTime.isAfter(OffsetDateTime.now().minusDays(1))) {
+        if (event.guild != null && message.creationTime.isAfter(OffsetDateTime.now().minusDays(1))) {
             val starReaction = message.reactions.find { it.reactionEmote.name == "⭐" }
             if (starReaction != null)
                 this.onReaction(event.guild, event.messageIdLong, message, starReaction.count)
@@ -131,7 +131,7 @@ class Starboard : Command() {
     @SubscribeEvent
     fun removeReactionEvent(event: GuildMessageReactionRemoveEvent) {
         val message = event.channel.getMessageById(event.messageIdLong).complete()
-        if (message.creationTime.isAfter(OffsetDateTime.now().minusDays(1))) {
+        if (event.guild != null && message.creationTime.isAfter(OffsetDateTime.now().minusDays(1))) {
             val starReaction = message.reactions.find { it.reactionEmote.name == "⭐" }
             if (starReaction != null)
                 this.onReaction(event.guild, event.messageIdLong, message, starReaction.count)
@@ -141,7 +141,7 @@ class Starboard : Command() {
     @SubscribeEvent
     fun removeAllReactionEvent(event: GuildMessageReactionRemoveAllEvent) {
         val message = event.channel.getMessageById(event.messageIdLong).complete()
-        if (message.creationTime.isAfter(OffsetDateTime.now().minusDays(1))) {
+        if (event.guild != null && message.creationTime.isAfter(OffsetDateTime.now().minusDays(1))) {
             this.onReaction(event.guild, event.messageIdLong, message, 0)
         }
     }

@@ -34,6 +34,9 @@ class UserInfoCommand : Command() {
                     ?: throw IllegalArgumentException("No such user found.")
 
     override fun onCommand(MC: MessageContext, args: List<String>) {
+        if (MC.serverCtx.guild == null)
+            throw IllegalArgumentException("You can only use this command on a server.")
+
         val arg = args.firstOrNull()
         val user = if (arg != null) resolveUser(MC.jda, arg) else MC.userCtx.user
         val member = MC.serverCtx.guild.getMember(user) ?: throw IllegalArgumentException("User not on server.")

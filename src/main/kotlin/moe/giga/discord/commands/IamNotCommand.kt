@@ -11,6 +11,9 @@ class IamNotCommand : Command() {
     override val usage = "iamnot <role>"
 
     override fun onCommand(MC: MessageContext, args: List<String>) {
+        if (MC.serverCtx.guild == null)
+            throw IllegalArgumentException("You can only use this command on a server.")
+
         val roleName = args.joinToString(separator = " ")
 
         val foundRoles = MC.serverCtx.guild.getRolesByName(roleName, true)

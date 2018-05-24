@@ -42,7 +42,7 @@ object LucoaBot {
             jdaBuilder.setEventManager(AnnotatedEventManager())
             jdaBuilder.addEventListener(handler)
 
-            jdaBuilder.buildBlocking()
+            jdaBuilder.buildAsync()
         } catch (e: LoginException) {
             e.printStackTrace()
             Logger.error("The bot token provided was most likely incorrect.")

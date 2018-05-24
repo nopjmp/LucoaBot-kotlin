@@ -19,6 +19,10 @@ class RemoveCustomCommand : Command() {
     override fun onCommand(MC: MessageContext, args: List<String>) {
         val command = args.getOrNull(0)
                 ?: throw IllegalArgumentException("You must supply a command to remove.")
+
+        if (MC.serverCtx.guild == null)
+            throw IllegalArgumentException("You can only use this command on a server.")
+
         try {
             Database.withStatement(DELETE_CUSTOM_COMMAND) {
                 setString(1, MC.serverCtx.guild.id)

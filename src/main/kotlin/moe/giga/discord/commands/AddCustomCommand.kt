@@ -30,6 +30,9 @@ class AddCustomCommand : Command() {
         if (LucoaBot.handler.hasCommand(command))
             throw IllegalArgumentException("You cannot use a command that already exists as a bot command.")
 
+        if (MC.serverCtx.guild == null)
+            throw IllegalArgumentException("You can only use this command on a server.")
+        
         try {
             Database.withStatement(ADD_CUSTOM_COMMAND) {
                 setString(1, MC.serverCtx.guild.id)

@@ -57,16 +57,13 @@ class Handler internal constructor(builder: JDABuilder, val commands: List<Comma
 
             if (rawCommand.startsWith(serverContext.prefix)) {
                 val commandName = rawCommand.substring(serverContext.prefix.length)
-                when {
-                    commandMap.containsKey(mapAlias(commandName)) ->
-                        processCommand(MessageContext.Builder()
-                                .event(event)
-                                .serverContext(serverContext)
-                                .build(), resolveCommand(commandName)!!, args.drop(1).toList())
-
-                    serverContext.customCommands.containsKey(commandName) ->
-                        processCustom(event, commandName, serverContext)
-                }
+                if (commandMap.containsKey(mapAlias(commandName)))
+                    processCommand(MessageContext.Builder()
+                            .event(event)
+                            .serverContext(serverContext)
+                            .build(), resolveCommand(commandName)!!, args.drop(1).toList())
+                else
+                    processCustom(event, commandName, serverContext)
             }
         }
     }
@@ -88,11 +85,12 @@ class Handler internal constructor(builder: JDABuilder, val commands: List<Comma
     }
 
     private fun processCustom(event: MessageReceivedEvent, name: String, serverContext: ServerContext) {
-        val message = MessageBuilder().append(serverContext.customCommands[name])
-                .stripMentions(event.jda, Message.MentionType.EVERYONE, Message.MentionType.HERE)
-                .build()
-        LucoaBot.statistics.incrementCommands()
-        event.channel.sendMessage(message).queue()
+        serverContext.findCustomCommand(name)?.let {
+            LucoaBot.statistics.incrementCommands()
+            event.channel.sendMessage(MessageBuilder().append(it)
+                    .stripMentions(event.jda, Message.MentionType.EVERYONE, Message.MentionType.HERE)
+                    .build()).queue()
+        }
     }
 
     @SubscribeEvent
