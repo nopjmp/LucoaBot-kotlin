@@ -7,12 +7,12 @@ import moe.giga.discord.util.AccessLevel
 @IsCommand
 class AddRoleCommand : Command() {
     override val name = "addrole"
-    override val aliases = arrayOf("asar")
+    override val alias = "asar"
     override val description = "Adds role(s) to the self assignable role list."
     override val usage = "addrole <role> <group>"
     override val level = AccessLevel.MOD
 
-    override fun onCommand(MC: MessageContext, args: List<String>) {
+    override fun execute(MC: MessageContext, args: List<String>) {
         val roleName = args.first()
         val group = args.getOrElse(1, { "default" })
 

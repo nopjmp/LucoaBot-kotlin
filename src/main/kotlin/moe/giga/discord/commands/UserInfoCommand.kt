@@ -33,7 +33,7 @@ class UserInfoCommand : Command() {
             jda.userCache.find { it.id == arg || it.name == arg || it.username() == arg || it.asMention == arg }
                     ?: throw IllegalArgumentException("No such user found.")
 
-    override fun onCommand(MC: MessageContext, args: List<String>) {
+    override fun execute(MC: MessageContext, args: List<String>) {
         if (MC.serverCtx.guild == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 

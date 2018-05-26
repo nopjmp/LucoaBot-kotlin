@@ -42,17 +42,16 @@ class Starboard : Command() {
         })
     }
 
-    override fun onCommand(MC: MessageContext, args: List<String>) {
+    override fun execute(MC: MessageContext, args: List<String>) {
         if (args.isNotEmpty()) {
             if (args[0].equals("none", ignoreCase = true)) {
-                MC.serverCtx.starChannel = null
+                MC.serverCtx.starChannel = ""
             } else if (argRegex.matches(args[0])) {
                 val matches = argRegex.find(args[0])
                 val channelId = matches?.groups?.get(1)?.value
                 val channel = MC.serverCtx.guild!!.getTextChannelById(channelId)
                 if (channel != null) {
                     MC.serverCtx.starChannel = channel.id
-                    MC.serverCtx.save()
                     MC.sendMessage("Star channel set to ${channel.asMention}").queue()
                     return
                 }
@@ -92,7 +91,7 @@ class Starboard : Command() {
     private fun onReaction(guild: Guild, messageId: Long, message: Message, count: Int) {
         val sc = ServerContext(guild)
 
-        if (sc.starChannel != null && sc.starChannel != message.channel.id) {
+        if (sc.starChannel.isNotEmpty() && sc.starChannel != message.channel.id) {
             val entry = snowflakeAssocMap[messageId]
 
             if (count < DEFAULT_THRESHOLD) {

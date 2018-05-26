@@ -6,11 +6,11 @@ import moe.giga.discord.contexts.MessageContext
 @IsCommand
 class IamCommand : Command() {
     override val name = "iam"
-    override val aliases = arrayOf("r")
+    override val alias = "r"
     override val description = "Assigns roles to the user running this command."
     override val usage = "iam <role>"
 
-    override fun onCommand(MC: MessageContext, args: List<String>) {
+    override fun execute(MC: MessageContext, args: List<String>) {
         if (MC.serverCtx.guild == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 

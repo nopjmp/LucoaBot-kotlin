@@ -7,12 +7,12 @@ import moe.giga.discord.util.AccessLevel
 @IsCommand
 class RemoveRoleCommand : Command() {
     override val name = "removerole"
-    override val aliases = arrayOf("rsar")
+    override val alias = "rsar"
     override val description = "Removes role(s) from the self assignable role list."
     override val usage = "removerole <role>"
     override val level = AccessLevel.MOD
 
-    override fun onCommand(MC: MessageContext, args: List<String>) {
+    override fun execute(MC: MessageContext, args: List<String>) {
         if (MC.serverCtx.guild == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 

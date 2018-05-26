@@ -10,7 +10,7 @@ import java.sql.SQLException
 @IsCommand
 class AddCustomCommand : Command() {
     override val name = "addcustom"
-    override val aliases = arrayOf("ac", "acc")
+    override val alias = "ac"
     override val usage = "addcustom <command> <response>"
     override val description = "Adds custom commands to be used by anyone"
     override val level = AccessLevel.MOD
@@ -19,7 +19,7 @@ class AddCustomCommand : Command() {
         const val ADD_CUSTOM_COMMAND = "customCommandAddOp"
     }
 
-    override fun onCommand(MC: MessageContext, args: List<String>) {
+    override fun execute(MC: MessageContext, args: List<String>) {
         val command = args.getOrNull(0)
                 ?: throw IllegalArgumentException("You must supply a command and response.")
 
@@ -32,7 +32,7 @@ class AddCustomCommand : Command() {
 
         if (MC.serverCtx.guild == null)
             throw IllegalArgumentException("You can only use this command on a server.")
-        
+
         try {
             Database.withStatement(ADD_CUSTOM_COMMAND) {
                 setString(1, MC.serverCtx.guild.id)

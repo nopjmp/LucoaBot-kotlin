@@ -11,7 +11,7 @@ class PrefixCommand : Command() {
     override val usage = "prefix <prefix text>"
     override val level = AccessLevel.MOD
 
-    override fun onCommand(MC: MessageContext, args: List<String>) {
+    override fun execute(MC: MessageContext, args: List<String>) {
         val newPrefix = args.firstOrNull() ?: ""
         when {
             newPrefix.isEmpty() -> throw IllegalArgumentException("Prefix must be at least 1 character.")
@@ -20,7 +20,6 @@ class PrefixCommand : Command() {
 
         try {
             MC.serverCtx.prefix = newPrefix
-            MC.serverCtx.save()
 
             MC.sendMessage("${MC.userCtx.asText} has changed the prefix to `$newPrefix`.").queue()
         } catch (_: Exception) {

@@ -15,7 +15,7 @@ class PruneCommand : Command() {
     override val usage = "prune <number of messages>"
     override val level = AccessLevel.MOD
 
-    override fun onCommand(MC: MessageContext, args: List<String>) {
+    override fun execute(MC: MessageContext, args: List<String>) {
         try {
             val num = args.first().toInt()
             when {

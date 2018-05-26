@@ -23,7 +23,7 @@ class EventLogCommand : Command() {
         builder.addEventListener(this)
     }
 
-    override fun onCommand(MC: MessageContext, args: List<String>) {
+    override fun execute(MC: MessageContext, args: List<String>) {
         if (args.isNotEmpty()) {
             if (args[0].equals("none", ignoreCase = true)) {
                 MC.serverCtx.deleteEventLog(MC.channel.id)

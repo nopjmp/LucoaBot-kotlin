@@ -3,7 +3,6 @@ package moe.giga.discord
 import moe.giga.discord.commands.Command
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.contexts.ServerContext
-import net.dv8tion.jda.core.JDABuilder
 import net.dv8tion.jda.core.MessageBuilder
 import net.dv8tion.jda.core.entities.Game
 import net.dv8tion.jda.core.entities.Message
@@ -13,37 +12,24 @@ import net.dv8tion.jda.core.hooks.SubscribeEvent
 import org.pmw.tinylog.Logger
 import kotlin.concurrent.timer
 
-class Handler internal constructor(builder: JDABuilder, val commands: List<Command>) {
+class Handler internal constructor(val commands: List<Command>) {
     private val commandMap = commands.associateBy { it.name }
-    private val aliasMap = HashMap<String, String>()
+    private val aliasMap = commands
+            .filter { it.alias != null }
+            .associateBy { it.alias }
 
     // TODO: add ability to escape double quotes
     private val splitRegex = Regex("([\"'])((?:\\\\\\1|.)*?)\\1|[^ '\"]+")
 
-    init {
-        for (command in commands) {
-            command.init(builder)
-            command.aliases.forEach { aliasMap.putIfAbsent(it, command.name) }
-        }
-    }
-
     fun hasCommand(name: String) =
             commandMap.containsKey(name) or aliasMap.containsKey(name)
 
-    private fun mapAlias(command: String): String = aliasMap.getOrDefault(command, command)
+    private fun commandArgs(message: Message) = commandArgs(message.contentRaw)
 
-    private fun commandArgs(message: Message): Sequence<String> {
-        return commandArgs(message.contentRaw)
-    }
+    private fun commandArgs(string: String) = splitRegex.findAll(string)
+            .map { it.value.removeSurrounding("\"") }
 
-    private fun commandArgs(string: String): Sequence<String> {
-        return splitRegex.findAll(string).map { it.value.removeSurrounding("\"") }
-    }
-
-    private fun resolveCommand(lookupString: String): Command? {
-        val commandName = mapAlias(lookupString)
-        return commandMap[commandName]
-    }
+    private fun resolveCommand(commandName: String) = commandMap[commandName] ?: aliasMap[commandName]
 
     // TODO: allow multiple word commands, probably will need a trie structure to find the commands, or regex lol
     @SubscribeEvent
@@ -57,11 +43,9 @@ class Handler internal constructor(builder: JDABuilder, val commands: List<Comma
 
             if (rawCommand.startsWith(serverContext.prefix)) {
                 val commandName = rawCommand.substring(serverContext.prefix.length)
-                if (commandMap.containsKey(mapAlias(commandName)))
-                    processCommand(MessageContext.Builder()
-                            .event(event)
-                            .serverContext(serverContext)
-                            .build(), resolveCommand(commandName)!!, args.drop(1).toList())
+                if (hasCommand(commandName))
+                    processCommand(MessageContext(event, serverContext),
+                            resolveCommand(commandName)!!, args.drop(1).toList())
                 else
                     processCustom(event, commandName, serverContext)
             }
@@ -72,7 +56,7 @@ class Handler internal constructor(builder: JDABuilder, val commands: List<Comma
         if (mc.userCtx.allowed(command.level)) {
             LucoaBot.statistics.incrementCommands()
             try {
-                command.onCommand(mc, args)
+                command.execute(mc, args)
             } catch (e: IllegalArgumentException) {
                 mc.sendError(e.message ?: "Invalid Arguments").queue()
             } catch (e: Exception) {

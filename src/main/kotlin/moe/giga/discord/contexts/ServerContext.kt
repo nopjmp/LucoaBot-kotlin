@@ -7,12 +7,47 @@ import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.User
 import java.sql.SQLException
+import kotlin.reflect.KProperty
 
 // log events structure?
 class ServerContext(val guild: Guild?) {
-    var prefix: String = "."
-    var starChannel: String? = ""
-    var logChannel: String? = ""
+    class DatabaseProp(private var field: String, private val columnName: String, guild: Guild?) {
+        private val guildId = guild?.id
+        private val getPropStmt = Database.connection.prepareStatement("SELECT $columnName FROM servers WHERE server_id = ?")!!
+        private val setPropStmt = Database.connection.prepareStatement("UPDATE servers SET $columnName = ? WHERE server_id = ?")!!
+        operator fun getValue(thisRef: Any?, p: KProperty<*>): String {
+            if (guildId != null) {
+                try {
+                    getPropStmt.setString(1, guildId)
+                    val results = getPropStmt.executeQuery()
+                    if (results.next())
+                        field = results.getString(columnName) ?: ""
+                } catch (e: SQLException) {
+                    e.printStackTrace()
+                }
+            }
+            return field
+        }
+
+        operator fun setValue(thisRef: Any?, p: KProperty<*>, v: String) {
+            if (guildId != null) {
+                try {
+                    setPropStmt.setString(1, v)
+                    setPropStmt.setString(2, guildId)
+                    setPropStmt.executeUpdate()
+                } catch (e: SQLException) {
+                    e.printStackTrace()
+                }
+            }
+
+            field = v
+        }
+    }
+
+    // TODO: this is mostly an experiment, I should probably use an ORM or something
+    var prefix by DatabaseProp(".", "prefix", guild)
+    var starChannel by DatabaseProp("", "star_channel", guild)
+    //var logChannel = DatabaseProp("", "log_channel", guild)
 
     companion object {
         const val FETCH_SERVER_ROLES = "serverRolesOp"
@@ -52,21 +87,13 @@ class ServerContext(val guild: Guild?) {
     }
 
     init {
-        attachData()
-    }
-
-    private fun attachData() {
         if (guild != null) {
             try {
                 Database.withStatement(FETCH_SERVER) {
                     setString(1, guild.id)
 
                     val rs = executeQuery()
-                    if (rs.next()) {
-                        prefix = rs.getString("prefix")
-                        logChannel = rs.getString("log_channel")
-                        starChannel = rs.getString("star_channel")
-                    } else {
+                    if (!rs.next()) {
                         Database.withStatement(INSERT_SERVER) {
                             setString(1, guild.id)
 
@@ -148,22 +175,6 @@ class ServerContext(val guild: Guild?) {
         }
 
         return mapOf()
-    }
-
-    fun save() {
-        if (guild != null) {
-            try {
-                Database.withStatement(SAVE_SERVER) {
-                    setString(1, prefix)
-                    setString(2, starChannel)
-                    setString(3, logChannel)
-                    setString(4, guild.id)
-                    executeUpdate()
-                }
-            } catch (e: SQLException) {
-                e.printStackTrace()
-            }
-        }
     }
 
     internal fun getMember(user: User): Member? = guild?.getMember(user)

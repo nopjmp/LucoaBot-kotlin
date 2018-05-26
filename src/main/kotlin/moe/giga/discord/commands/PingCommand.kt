@@ -10,7 +10,7 @@ class PingCommand : Command() {
     override val name = "ping"
     override val description = "Ping command"
 
-    override fun onCommand(MC: MessageContext, args: List<String>) {
+    override fun execute(MC: MessageContext, args: List<String>) {
         val start = Instant.now()
         MC.channel.sendMessage("Pong!").queue {
             val end = Instant.now()

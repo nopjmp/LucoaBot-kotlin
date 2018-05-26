@@ -24,7 +24,7 @@ class XKCDCommand : Command() {
         client.newCall(request).enqueue(OkHttpCallbackProxy(action, error))
     }
 
-    override fun onCommand(MC: MessageContext, args: List<String>) {
+    override fun execute(MC: MessageContext, args: List<String>) {
         val success = { data: XKCDData ->
             MC.sendMessage(EmbedBuilder()
                     .setTitle("xkcd: ${data.safe_title}")

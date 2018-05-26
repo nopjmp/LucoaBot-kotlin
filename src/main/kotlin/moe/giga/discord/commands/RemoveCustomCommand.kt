@@ -9,14 +9,14 @@ import java.sql.SQLException
 @IsCommand
 class RemoveCustomCommand : Command() {
     override val name = "removecustom"
-    override val aliases = arrayOf("rc", "rcc")
+    override val alias = "rc"
     override val level = AccessLevel.MOD
 
     companion object {
         const val DELETE_CUSTOM_COMMAND = "customCommandDeleteOp"
     }
 
-    override fun onCommand(MC: MessageContext, args: List<String>) {
+    override fun execute(MC: MessageContext, args: List<String>) {
         val command = args.getOrNull(0)
                 ?: throw IllegalArgumentException("You must supply a command to remove.")
 

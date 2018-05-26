@@ -11,7 +11,7 @@ class RoleSpecCommand : Command() {
     override val usage = "rolespec <role spec> <role name>"
     override val level = AccessLevel.ADMIN
 
-    override fun onCommand(MC: MessageContext, args: List<String>) {
+    override fun execute(MC: MessageContext, args: List<String>) {
         if (MC.serverCtx.guild == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 

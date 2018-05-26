@@ -13,7 +13,7 @@ import java.sql.PreparedStatement
 import java.sql.SQLException
 
 object Database {
-    private val connection: Connection
+    internal val connection: Connection
     private const val DB_NAME = "lucoa-data.db"
 
     private val preparedStatements: HashMap<String, PreparedStatement>

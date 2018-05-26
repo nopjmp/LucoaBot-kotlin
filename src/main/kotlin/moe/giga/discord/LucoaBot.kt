@@ -38,7 +38,7 @@ object LucoaBot {
         try {
             val jdaBuilder = JDABuilder(AccountType.BOT).setToken(settings.botToken)
 
-            handler = Handler(jdaBuilder, findCommands())
+            handler = Handler(findCommands().apply { forEach { it.init(jdaBuilder) } })
             jdaBuilder.setEventManager(AnnotatedEventManager())
             jdaBuilder.addEventListener(handler)
 

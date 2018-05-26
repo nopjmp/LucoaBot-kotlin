@@ -8,7 +8,7 @@ import net.dv8tion.jda.core.entities.Role
 @IsCommand
 class RolesCommand : Command() {
     override val name = "roles"
-    override val aliases = arrayOf("lsar")
+    override val alias = "lsar"
     override val description = "Lists self assignable roles. Defaults to $AS_MENTION_WORD as mentions."
     override val usage = "roles <mentions ($AS_MENTION)>"
 
@@ -19,7 +19,7 @@ class RolesCommand : Command() {
             role.name
     }
 
-    override fun onCommand(MC: MessageContext, args: List<String>) {
+    override fun execute(MC: MessageContext, args: List<String>) {
         if (MC.serverCtx.guild == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 

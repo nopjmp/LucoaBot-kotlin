@@ -30,7 +30,7 @@ class StatsCommand : Command() {
 
     }
 
-    override fun onCommand(MC: MessageContext, args: List<String>) {
+    override fun execute(MC: MessageContext, args: List<String>) {
         val version = this.properties.getProperty("info.build.version", "(unknown)")
         val rb = ManagementFactory.getRuntimeMXBean()
         val heapMemoryUsage = ManagementFactory.getMemoryMXBean().heapMemoryUsage

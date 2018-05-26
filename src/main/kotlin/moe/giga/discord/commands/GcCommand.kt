@@ -11,7 +11,7 @@ class GcCommand : Command() {
     override val hidden = true
     override val level = AccessLevel.ROOT
 
-    override fun onCommand(MC: MessageContext, args: List<String>) {
+    override fun execute(MC: MessageContext, args: List<String>) {
         Logger.info("System.gc() invoked by GcCommand!!!")
         MC.sendMessage("Invoking System.gc()").queue()
         System.gc()
