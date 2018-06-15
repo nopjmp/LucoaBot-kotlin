@@ -3,7 +3,7 @@ apply plugin: 'kotlin' // implicitly applies java plugin
 apply plugin: "com.github.ben-manes.versions"
 
 group = 'moe.giga'
-version = '0.6.3'
+version = '0.6.4'
 
 mainClassName = 'moe.giga.discord.LucoaBot'
 applicationDefaultJvmArgs = ["-Dfile.encoding=UTF-8"]
