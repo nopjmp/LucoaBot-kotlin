@@ -23,7 +23,7 @@ class IamCommand : Command() {
         val key = selfRoles
                 .filterValues { it.contains(role.id) }
                 .map { it.key }
-                .first()
+                .firstOrNull() ?: throw IllegalArgumentException("`${role.name}` is not a self-assignable role.")
 
         val member = MC.userCtx.member ?: throw IllegalArgumentException("Internal Error: Member not found on server.")
         if (member.roles.contains(role)) {

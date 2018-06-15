@@ -6,19 +6,15 @@ import moe.giga.discord.contexts.ServerContext
 import moe.giga.discord.util.AccessLevel
 import moe.giga.discord.util.username
 import net.dv8tion.jda.core.EmbedBuilder
+import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.JDABuilder
-import net.dv8tion.jda.core.entities.EmbedType
-import net.dv8tion.jda.core.entities.Guild
-import net.dv8tion.jda.core.entities.Message
-import net.dv8tion.jda.core.entities.MessageEmbed
+import net.dv8tion.jda.core.entities.*
 import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionAddEvent
 import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionRemoveAllEvent
 import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionRemoveEvent
 import net.dv8tion.jda.core.hooks.SubscribeEvent
 import java.awt.Color
 import java.time.OffsetDateTime
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.concurrent.timer
 
 @IsCommand
 class Starboard : Command() {
@@ -28,18 +24,8 @@ class Starboard : Command() {
 
     private val argRegex = Regex("""<#(\d+)>""")
 
-    private val snowflakeAssocMap = ConcurrentHashMap<Long, StarboardEntry>()
-
-    private inner class StarboardEntry(internal val channelId: Long, internal val messageId: Long, internal val time: OffsetDateTime)
-
     override fun init(builder: JDABuilder) {
         builder.addEventListener(this)
-
-        timer("SnowflakeAssocClean", period = 30000, action = {
-            snowflakeAssocMap.filter {
-                it.value.time.isBefore(OffsetDateTime.now().minusDays(1))
-            }.forEach { snowflakeAssocMap.remove(it.key) }
-        })
     }
 
     override fun execute(MC: MessageContext, args: List<String>) {
@@ -60,8 +46,16 @@ class Starboard : Command() {
         MC.sendError("args invalid?").queue()
     }
 
+    private fun findStarPost(jda: JDA, channel: TextChannel, message: Message) =
+            channel.iterableHistory
+                    .limit(100) // 50 seems like a good limit
+                    .filter { it.author == jda.selfUser }
+                    .filter { it.creationTime.isAfter(OffsetDateTime.now().minusDays(1)) }
+                    .find { it.contentRaw.contains("${message.textChannel.asMention} ID: ${message.id}") }
+                    ?.let { it.idLong }
+
     private fun makeText(message: Message, count: Int): String {
-        return "⭐ **$count** ${message.textChannel.asMention} ID: ${message.idLong}"
+        return "$EMOTE **$count** ${message.textChannel.asMention} ID: ${message.idLong}"
     }
 
     private fun makeEmbed(message: Message, count: Int): MessageEmbed {
@@ -88,30 +82,26 @@ class Starboard : Command() {
         return embed.build()
     }
 
-    private fun onReaction(guild: Guild, messageId: Long, message: Message, count: Int) {
+    private fun onReaction(guild: Guild, message: Message, count: Int) {
         val sc = ServerContext(guild)
 
         if (sc.starChannel.isNotEmpty() && sc.starChannel != message.channel.id) {
-            val entry = snowflakeAssocMap[messageId]
+            val starChannel = guild.getTextChannelById(sc.starChannel)
+
+            val entryId = findStarPost(guild.jda, starChannel, message)
 
             if (count < DEFAULT_THRESHOLD) {
-                if (entry != null) {
-                    snowflakeAssocMap.remove(messageId)
-                    val channel = guild.getTextChannelById(entry.channelId)
-                    channel.getMessageById(entry.messageId).queue { it.delete().queue() }
+                if (entryId != null) {
+                    starChannel.getMessageById(entryId).queue { it.delete().queue() }
                 }
             } else {
                 val text = makeText(message, count)
                 val embed = makeEmbed(message, count)
 
-                if (entry == null) {
-                    val channel = guild.getTextChannelById(sc.starChannel)
-                    val newMessage = channel.sendMessage(embed).content(text).complete()
-                    snowflakeAssocMap[message.idLong] = StarboardEntry(channel.idLong, newMessage.idLong, newMessage.creationTime)
+                if (entryId == null) {
+                    starChannel.sendMessage(embed).content(text).queue()
                 } else {
-                    val channel = guild.getTextChannelById(entry.channelId)
-                    val existingMessage = channel.getMessageById(entry.messageId).complete()
-                    existingMessage.editMessage(embed).content(text).queue()
+                    starChannel.getMessageById(entryId).queue({ it.editMessage(embed).content(text).queue() })
                 }
             }
         }
@@ -120,20 +110,19 @@ class Starboard : Command() {
     @SubscribeEvent
     fun addReactionEvent(event: GuildMessageReactionAddEvent) {
         val message = event.channel.getMessageById(event.messageIdLong).complete()
-        if (event.guild != null && message.creationTime.isAfter(OffsetDateTime.now().minusDays(1))) {
-            val starReaction = message.reactions.find { it.reactionEmote.name == "⭐" }
+        if (event.guild != null && event.reactionEmote.name == EMOTE && message.creationTime.isAfter(OffsetDateTime.now().minusDays(1))) {
+            val starReaction = message.reactions.find { it.reactionEmote.name == EMOTE }
             if (starReaction != null)
-                this.onReaction(event.guild, event.messageIdLong, message, starReaction.count)
+                this.onReaction(event.guild, message, starReaction.count)
         }
     }
 
     @SubscribeEvent
     fun removeReactionEvent(event: GuildMessageReactionRemoveEvent) {
         val message = event.channel.getMessageById(event.messageIdLong).complete()
-        if (event.guild != null && message.creationTime.isAfter(OffsetDateTime.now().minusDays(1))) {
-            val starReaction = message.reactions.find { it.reactionEmote.name == "⭐" }
-            if (starReaction != null)
-                this.onReaction(event.guild, event.messageIdLong, message, starReaction.count)
+        if (event.guild != null && event.reactionEmote.name == EMOTE && message.creationTime.isAfter(OffsetDateTime.now().minusDays(1))) {
+            val starReaction = message.reactions.find { it.reactionEmote.name == EMOTE }
+            this.onReaction(event.guild, message, starReaction?.count ?: 0)
         }
     }
 
@@ -141,11 +130,12 @@ class Starboard : Command() {
     fun removeAllReactionEvent(event: GuildMessageReactionRemoveAllEvent) {
         val message = event.channel.getMessageById(event.messageIdLong).complete()
         if (event.guild != null && message.creationTime.isAfter(OffsetDateTime.now().minusDays(1))) {
-            this.onReaction(event.guild, event.messageIdLong, message, 0)
+            this.onReaction(event.guild, message, 0)
         }
     }
 
     companion object {
         private const val DEFAULT_THRESHOLD = 3
+        private const val EMOTE = "⭐"
     }
 }

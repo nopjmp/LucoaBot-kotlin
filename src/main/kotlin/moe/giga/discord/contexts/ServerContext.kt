@@ -3,6 +3,7 @@ package moe.giga.discord.contexts
 import moe.giga.discord.util.AccessLevel
 import moe.giga.discord.util.Database
 import moe.giga.discord.util.EventLogType
+import moe.giga.discord.util.isEmpty
 import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.User
@@ -11,43 +12,46 @@ import kotlin.reflect.KProperty
 
 // log events structure?
 class ServerContext(val guild: Guild?) {
-    class DatabaseProp(private var field: String, private val columnName: String, guild: Guild?) {
-        private val guildId = guild?.id
-        private val getPropStmt = Database.connection.prepareStatement("SELECT $columnName FROM servers WHERE server_id = ?")!!
-        private val setPropStmt = Database.connection.prepareStatement("UPDATE servers SET $columnName = ? WHERE server_id = ?")!!
+    inner class DatabaseProp(private var field: String, private val columnName: String) {
+        private val getSQL = "SELECT $columnName FROM servers WHERE server_id = ?"
+        private val setSQL = "UPDATE servers SET $columnName = ? WHERE server_id = ?"
         operator fun getValue(thisRef: Any?, p: KProperty<*>): String {
-            if (guildId != null) {
+            guild?.let { guild ->
                 try {
-                    getPropStmt.setString(1, guildId)
-                    val results = getPropStmt.executeQuery()
-                    if (results.next())
-                        field = results.getString(columnName) ?: ""
+                    Database.connection.prepareStatement(getSQL).use {
+                        it.setString(1, guild.id)
+                        it.executeQuery().use { r ->
+                            if (!r.isEmpty()) field = r.getString(columnName) ?: ""
+                        }
+                    }
                 } catch (e: SQLException) {
                     e.printStackTrace()
                 }
             }
+
             return field
         }
 
         operator fun setValue(thisRef: Any?, p: KProperty<*>, v: String) {
-            if (guildId != null) {
+            guild?.let {
                 try {
-                    setPropStmt.setString(1, v)
-                    setPropStmt.setString(2, guildId)
-                    setPropStmt.executeUpdate()
+                    Database.connection.prepareStatement(setSQL).use {
+                        it.setString(1, v)
+                        it.setString(2, guild.id)
+                        it.executeUpdate()
+                    }
                 } catch (e: SQLException) {
                     e.printStackTrace()
                 }
             }
-
             field = v
         }
     }
 
     // TODO: this is mostly an experiment, I should probably use an ORM or something
-    var prefix by DatabaseProp(".", "prefix", guild)
-    var starChannel by DatabaseProp("", "star_channel", guild)
-    //var logChannel = DatabaseProp("", "log_channel", guild)
+    var prefix by DatabaseProp(".", "prefix")
+    var starChannel by DatabaseProp("", "star_channel")
+    //var logChannel = DatabaseProp("", "log_channel")
 
     companion object {
         const val FETCH_SERVER_ROLES = "serverRolesOp"
@@ -71,13 +75,13 @@ class ServerContext(val guild: Guild?) {
             try {
                 return Database.withStatement(FETCH_SERVER_ROLES) {
                     setString(1, guild.id)
-                    val results = executeQuery()
-                    val roles = HashMap<String, String>()
-                    while (results.next()) {
-                        roles[results.getString("role_spec")] = results.getString("role_id")
+                    executeQuery().use { r ->
+                        val roles = hashMapOf<String, String>()
+                        while (r.next()) {
+                            roles[r.getString("role_spec")] = r.getString("role_id")
+                        }
+                        roles
                     }
-
-                    roles
                 }
             } catch (e: SQLException) {
                 e.printStackTrace()
@@ -89,16 +93,15 @@ class ServerContext(val guild: Guild?) {
     init {
         if (guild != null) {
             try {
-                Database.withStatement(FETCH_SERVER) {
+                val exists = Database.withStatement(FETCH_SERVER) {
                     setString(1, guild.id)
+                    executeQuery().use { rs -> !rs.isEmpty() }
+                }
 
-                    val rs = executeQuery()
-                    if (!rs.next()) {
-                        Database.withStatement(INSERT_SERVER) {
-                            setString(1, guild.id)
-
-                            executeUpdate()
-                        }
+                if (!exists) {
+                    Database.withStatement(INSERT_SERVER) {
+                        setString(1, guild.id)
+                        executeUpdate()
                     }
                 }
             } catch (e: SQLException) {
@@ -159,15 +162,16 @@ class ServerContext(val guild: Guild?) {
                 return Database.withStatement(FETCH_SELF_ROLES) {
                     setString(1, guild.id)
 
-                    val results = executeQuery()
-                    val roleList = ArrayList<Pair<String, String>>()
-                    while (results.next()) {
-                        val roleSpec = results.getString("role_spec")
-                        val roleId = results.getString("role_id")
+                    executeQuery().use { rs ->
+                        val roleList = mutableListOf<Pair<String, String>>()
+                        while (rs.next()) {
+                            val roleSpec = rs.getString("role_spec")
+                            val roleId = rs.getString("role_id")
 
-                        roleList.add(Pair(roleSpec, roleId))
+                            roleList.add(Pair(roleSpec, roleId))
+                        }
+                        roleList.groupBy({ it.first }, { it.second })
                     }
-                    roleList.groupBy({ it.first }, { it.second })
                 }
             } catch (e: SQLException) {
                 e.printStackTrace()
@@ -217,11 +221,12 @@ class ServerContext(val guild: Guild?) {
         if (guild != null) {
             try {
                 Database.withStatement(FETCH_STAR_EVENT_LOG) {
-                    val checkResult = executeQuery()
-                    if (checkResult.next()) {
-                        val allChannel = checkResult.getString("channel_id")
-                        if (allChannel == channel) {
-                            return false
+                    executeQuery().use { rs ->
+                        if (!rs.isEmpty()) {
+                            val allChannel = rs.getString("channel_id")
+                            if (allChannel == channel) {
+                                return false
+                            }
                         }
                     }
                 }
@@ -246,11 +251,13 @@ class ServerContext(val guild: Guild?) {
                     setString(1, guild.id)
                     setString(2, eventLogType.toString())
 
-                    val results = executeQuery()
-                    val list = ArrayList<String>()
-                    while (results.next())
-                        list.add(results.getString("channel_id"))
-                    list
+                    executeQuery().use { rs ->
+                        val list = mutableListOf<String>()
+                        while (rs.next())
+                            list.add(rs.getString("channel_id"))
+                        list
+                    }
+
                 }
             } catch (e: SQLException) {
                 e.printStackTrace()
@@ -266,9 +273,7 @@ class ServerContext(val guild: Guild?) {
                     setString(1, guild.id)
                     setString(2, name)
 
-                    val results = executeQuery()
-                    if (results.next())
-                        return results.getString("response")
+                    executeQuery().use { rs -> if (!rs.isEmpty()) return rs.getString("response") }
                 }
             } catch (e: SQLException) {
                 e.printStackTrace()

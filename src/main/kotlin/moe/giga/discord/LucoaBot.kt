@@ -8,7 +8,6 @@ import net.dv8tion.jda.core.JDABuilder
 import net.dv8tion.jda.core.hooks.AnnotatedEventManager
 import org.pmw.tinylog.Logger
 import org.reflections.Reflections
-import java.util.*
 import javax.security.auth.login.LoginException
 
 object LucoaBot {
@@ -58,7 +57,7 @@ object LucoaBot {
         val reflections = Reflections("moe.giga.discord.commands")
         val annotated = reflections.getTypesAnnotatedWith(IsCommand::class.java)
 
-        val commands = ArrayList<Command>()
+        val commands = mutableListOf<Command>()
         for (clazz in annotated) {
             try {
                 commands.add(clazz.getDeclaredConstructor().newInstance() as Command)
