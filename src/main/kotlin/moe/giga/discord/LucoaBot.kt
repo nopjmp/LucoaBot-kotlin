@@ -1,5 +1,6 @@
 package moe.giga.discord
 
+import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner
 import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.commands.Command
 import moe.giga.discord.util.Database
@@ -7,7 +8,7 @@ import net.dv8tion.jda.core.AccountType
 import net.dv8tion.jda.core.JDABuilder
 import net.dv8tion.jda.core.hooks.AnnotatedEventManager
 import org.pmw.tinylog.Logger
-import org.reflections.Reflections
+import java.lang.annotation.RetentionPolicy
 import javax.security.auth.login.LoginException
 
 object LucoaBot {
@@ -54,18 +55,13 @@ object LucoaBot {
     }
 
     private fun findCommands(): List<Command> {
-        val reflections = Reflections("moe.giga.discord.commands")
-        val annotated = reflections.getTypesAnnotatedWith(IsCommand::class.java)
-
         val commands = mutableListOf<Command>()
-        for (clazz in annotated) {
-            try {
-                commands.add(clazz.getDeclaredConstructor().newInstance() as Command)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-
+        FastClasspathScanner("moe.giga.discord.commands")
+                .setAnnotationVisibility(RetentionPolicy.RUNTIME)
+                .matchClassesWithAnnotation(IsCommand::class.java) { clazz ->
+                    commands.add(clazz.getDeclaredConstructor().newInstance() as Command)
+                }
+                .scan()
         return commands
     }
 }

@@ -12,7 +12,7 @@ class GcCommand : Command() {
     override val level = AccessLevel.ROOT
 
     override fun execute(MC: MessageContext, args: List<String>) {
-        Logger.info("System.gc() invoked by GcCommand!!!")
+        Logger.info("System.gc() invoked by GcCommand")
         MC.sendMessage("Invoking System.gc()").queue()
         System.gc()
     }
