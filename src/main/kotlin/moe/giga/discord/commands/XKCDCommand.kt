@@ -1,10 +1,8 @@
 package moe.giga.discord.commands
 
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import moe.giga.discord.contexts.MessageContext
+import moe.giga.discord.util.HttpFetcher
 import net.dv8tion.jda.core.EmbedBuilder
-import okhttp3.*
 import java.io.IOException
 import java.util.*
 
@@ -14,65 +12,35 @@ class XKCDCommand : Command {
     override val description = "Fetches xkcd comics and displays them. Maybe. Depends on the phase of the moon."
     override val usage = "xkcd [id | random]"
 
-    private val client = OkHttpClient()
-
-    private val dataJsonAdapter = Moshi.Builder()
-            .add(KotlinJsonAdapterFactory())
-            .build()
-            .adapter(XKCDData::class.java)
-
-    private fun fetchData(url: String, action: (Response) -> Unit, error: (IOException?) -> Unit) {
-        val request = Request.Builder()
-                .url(url)
-                .build()
-
-        val func = { r: Response? ->
-            if (r == null || !r.isSuccessful)
-                throw IOException("Unexpected response")
-            action(r)
-        }
-
-        client.newCall(request).enqueue(OkHttpCallbackProxy(func, error))
-    }
+    private val httpFetcher = HttpFetcher(XKCDData::class.java)
 
     override fun execute(MC: MessageContext, args: List<String>) {
-        val success = { data: XKCDData ->
+        val complete = { data: XKCDData ->
             MC.sendMessage(EmbedBuilder()
                     .setTitle("xkcd: ${data.safe_title}")
                     .setImage(data.img)
                     .setFooter(data.alt, null).build())
                     .queue()
         }
-        val errorAction = { _: IOException? -> MC.sendError("Error communicating with XKCD").queue() }
+        val reportError = { _: IOException? -> MC.sendError("Error communicating with XKCD").queue() }
         try {
             when {
                 args.isEmpty() -> {
-                    fetchData("https://xkcd.com/info.0.json", {
-                        success(dataJsonAdapter.fromJson(it.body()!!.source())
-                                ?: throw IOException("Unexpected response"))
-                    }, errorAction)
+                    httpFetcher.execute("https://xkcd.com/info.0.json", complete, reportError)
                 }
                 args.first().startsWith("rand") -> {
-                    fetchData("https://xkcd.com/info.0.json", {
-                        val info: XKCDData = dataJsonAdapter.fromJson(it.body()!!.source())
-                                ?: throw IOException("Unexpected response")
-
-                        fetchData("https://xkcd.com/${(0..info.num + 1).random()}/info.0.json", {
-                            success(dataJsonAdapter.fromJson(it.body()!!.source())
-                                    ?: throw IOException("Unexpected response"))
-                        }, errorAction)
-                    }, errorAction)
+                    httpFetcher.execute("https://xkcd.com/info.0.json", { info ->
+                        httpFetcher.execute("https://xkcd.com/${(0..info.num + 1).random()}/info.0.json",
+                                complete, reportError)
+                    }, reportError)
                 }
                 else -> {
                     val num = args.first().toInt()
-                    fetchData("https://xkcd.com/info.$num.json", {
-                        success(dataJsonAdapter.fromJson(it.body()!!.source())
-                                ?: throw IOException("Unexpected response"))
-                    }, errorAction)
+                    httpFetcher.execute("https://xkcd.com/info.$num.json", complete, reportError)
                 }
             }
         } catch (_: Exception) {
-            errorAction(null)
+            reportError(null)
         }
     }
 
@@ -89,20 +57,6 @@ class XKCDCommand : Command {
             val title: String,
             val day: String
     )
-
-    private class OkHttpCallbackProxy(private val success: (Response?) -> Unit, private val error: (IOException?) -> Unit) : Callback {
-        override fun onFailure(call: Call?, e: IOException?) {
-            error(e)
-        }
-
-        override fun onResponse(call: Call?, response: Response?) {
-            if (response?.code() != 200) {
-                error(null)
-            } else {
-                success(response)
-            }
-        }
-    }
 
     companion object {
         fun ClosedRange<Int>.random() =
