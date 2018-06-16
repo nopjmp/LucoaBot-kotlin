@@ -1,12 +1,11 @@
 package moe.giga.discord.commands
 
-import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 import java.time.Duration
 import java.time.Instant
 
-@IsCommand
-class PingCommand : Command() {
+@Suppress("unused")
+class PingCommand : Command {
     override val name = "ping"
     override val description = "Ping command"
 

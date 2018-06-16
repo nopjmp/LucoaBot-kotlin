@@ -1,10 +1,9 @@
 package moe.giga.discord.commands
 
-import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 
-@IsCommand
-class IamCommand : Command() {
+@Suppress("unused")
+class IamCommand : Command {
     override val name = "iam"
     override val alias = "r"
     override val description = "Assigns roles to the user running this command."
@@ -36,9 +35,9 @@ class IamCommand : Command() {
                 controller.removeRolesFromMember(member, filtered).queue()
             }
 
-            controller.addRolesToMember(member, role).queue({
+            controller.addRolesToMember(member, role).queue {
                 MC.sendMessage("${MC.userCtx.asText} now has the role **${role.name}**").queue()
-            })
+            }
         }
     }
 }

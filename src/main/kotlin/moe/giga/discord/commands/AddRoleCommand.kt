@@ -1,11 +1,10 @@
 package moe.giga.discord.commands
 
-import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.util.AccessLevel
 
-@IsCommand
-class AddRoleCommand : Command() {
+@Suppress("unused")
+class AddRoleCommand : Command {
     override val name = "addrole"
     override val alias = "asar"
     override val description = "Adds role(s) to the self assignable role list."

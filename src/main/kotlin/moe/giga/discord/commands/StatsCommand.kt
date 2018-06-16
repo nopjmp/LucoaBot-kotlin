@@ -1,7 +1,6 @@
 package moe.giga.discord.commands
 
 import moe.giga.discord.LucoaBot
-import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.util.username
 import net.dv8tion.jda.core.EmbedBuilder
@@ -11,8 +10,8 @@ import java.lang.management.ManagementFactory
 import java.time.Duration
 import java.util.*
 
-@IsCommand
-class StatsCommand : Command() {
+@Suppress("unused")
+class StatsCommand : Command {
     override val name = "stats"
     override val description = "Displays stats about the bot."
 
@@ -50,7 +49,7 @@ class StatsCommand : Command() {
         val guilds = MC.jda.guildCache
 
         val memberCount = guilds.stream()
-                .map({ guild -> guild.memberCache.size() })
+                .map { guild -> guild.memberCache.size() }
                 .reduce(0, { a, b -> a!! + b!! })
 
         MC.sendMessage(EmbedBuilder().setColor(3447003)

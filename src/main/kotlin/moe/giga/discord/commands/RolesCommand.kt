@@ -1,12 +1,11 @@
 package moe.giga.discord.commands
 
-import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.Role
 
-@IsCommand
-class RolesCommand : Command() {
+@Suppress("unused")
+class RolesCommand : Command {
     override val name = "roles"
     override val alias = "lsar"
     override val description = "Lists self assignable roles. Defaults to $AS_MENTION_WORD as mentions."

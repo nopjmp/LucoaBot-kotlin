@@ -1,11 +1,10 @@
 package moe.giga.discord.commands
 
-import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.util.AccessLevel
 
-@IsCommand()
-class RoleSpecCommand : Command() {
+@Suppress("unused")
+class RoleSpecCommand : Command {
     override val name = "rolespec"
     override val description = "Sets what role gives what permissions (role specification)."
     override val usage = "rolespec <role spec> <role name>"

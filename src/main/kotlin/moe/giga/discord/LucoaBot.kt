@@ -1,7 +1,6 @@
 package moe.giga.discord
 
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner
-import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.commands.Command
 import moe.giga.discord.util.Database
 import net.dv8tion.jda.core.AccountType
@@ -58,8 +57,8 @@ object LucoaBot {
         val commands = mutableListOf<Command>()
         FastClasspathScanner("moe.giga.discord.commands")
                 .setAnnotationVisibility(RetentionPolicy.RUNTIME)
-                .matchClassesWithAnnotation(IsCommand::class.java) { clazz ->
-                    commands.add(clazz.getDeclaredConstructor().newInstance() as Command)
+                .matchClassesImplementing(Command::class.java) { clazz ->
+                    commands.add(clazz.getDeclaredConstructor().newInstance())
                 }
                 .scan()
         return commands

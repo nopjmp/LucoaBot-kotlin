@@ -1,11 +1,10 @@
 package moe.giga.discord.commands
 
-import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.util.AccessLevel
 
-@IsCommand
-class RemoveRoleCommand : Command() {
+@Suppress("unused")
+class RemoveRoleCommand : Command {
     override val name = "removerole"
     override val alias = "rsar"
     override val description = "Removes role(s) from the self assignable role list."

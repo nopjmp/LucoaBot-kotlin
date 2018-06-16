@@ -4,18 +4,23 @@ import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.util.AccessLevel
 import net.dv8tion.jda.core.JDABuilder
 
-abstract class Command {
-    abstract fun execute(MC: MessageContext, args: List<String>)
+interface Command {
+    fun execute(MC: MessageContext, args: List<String>)
 
-    open fun init(builder: JDABuilder) {
+    fun init(builder: JDABuilder) {
 
     }
 
-    open val name: String = ""
-    open val description: String = ""
-    open val usage: String
+    val name: String
+        get() = ""
+    val description: String
+        get() = ""
+    val usage: String
         get() = name
-    open val alias: String? = null
-    open val hidden: Boolean = false
-    open val level: AccessLevel = AccessLevel.USER
+    val alias: String?
+        get() = null
+    val hidden: Boolean
+        get() = false
+    val level: AccessLevel
+        get() = AccessLevel.USER
 }

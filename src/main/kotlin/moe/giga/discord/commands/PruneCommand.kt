@@ -1,6 +1,5 @@
 package moe.giga.discord.commands
 
-import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.util.AccessLevel
 import net.dv8tion.jda.core.entities.ChannelType
@@ -8,8 +7,8 @@ import net.dv8tion.jda.core.entities.TextChannel
 import java.util.*
 import kotlin.concurrent.schedule
 
-@IsCommand()
-class PruneCommand : Command() {
+@Suppress("unused")
+class PruneCommand : Command {
     override val name = "prune"
     override val description = "Removes the last X number of messages."
     override val usage = "prune <number of messages>"

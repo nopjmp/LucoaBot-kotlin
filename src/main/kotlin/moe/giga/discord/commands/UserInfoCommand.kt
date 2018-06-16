@@ -1,6 +1,5 @@
 package moe.giga.discord.commands
 
-import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.util.username
 import net.dv8tion.jda.core.EmbedBuilder
@@ -9,8 +8,8 @@ import net.dv8tion.jda.core.Permission
 import net.dv8tion.jda.core.utils.PermissionUtil
 import java.time.Instant
 
-@IsCommand
-class UserInfoCommand : Command() {
+@Suppress("unused")
+class UserInfoCommand : Command {
     override val name = "userinfo"
     override val description = "Displays information about the user"
     override val usage = "userinfo <id | username | username#discriminator | mention>"

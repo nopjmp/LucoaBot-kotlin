@@ -1,12 +1,11 @@
 package moe.giga.discord.commands
 
 import moe.giga.discord.LucoaBot
-import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 import net.dv8tion.jda.core.EmbedBuilder
 
-@IsCommand()
-class HelpCommand : Command() {
+@Suppress("unused")
+class HelpCommand : Command {
     override val name = "help"
     override val alias = "commands"
     override val description = "Shows avaliable commands"

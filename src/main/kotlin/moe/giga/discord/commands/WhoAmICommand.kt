@@ -1,10 +1,9 @@
 package moe.giga.discord.commands
 
-import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 
-@IsCommand()
-class WhoAmICommand : Command() {
+@Suppress("unused")
+class WhoAmICommand : Command {
     override val name = "whoami"
     override val hidden = true
 

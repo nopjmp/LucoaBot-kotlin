@@ -1,6 +1,5 @@
 package moe.giga.discord.commands
 
-import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.contexts.ServerContext
 import moe.giga.discord.contexts.UserContext
@@ -11,8 +10,8 @@ import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent
 import net.dv8tion.jda.core.events.guild.member.GuildMemberLeaveEvent
 import net.dv8tion.jda.core.hooks.SubscribeEvent
 
-@IsCommand()
-class EventLogCommand : Command() {
+@Suppress("unused")
+class EventLogCommand : Command {
     override val name = "eventlog"
     override val hidden = true
     override val level = AccessLevel.MOD

@@ -1,12 +1,11 @@
 package moe.giga.discord.commands
 
-import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.util.AccessLevel
 import org.pmw.tinylog.Logger
 
-@IsCommand
-class GcCommand : Command() {
+@Suppress("unused")
+class GcCommand : Command {
     override val name = "gc"
     override val hidden = true
     override val level = AccessLevel.ROOT

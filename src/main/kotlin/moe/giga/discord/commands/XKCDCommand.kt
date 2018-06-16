@@ -2,15 +2,14 @@ package moe.giga.discord.commands
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 import net.dv8tion.jda.core.EmbedBuilder
 import okhttp3.*
 import java.io.IOException
 import java.util.*
 
-@IsCommand()
-class XKCDCommand : Command() {
+@Suppress("unused")
+class XKCDCommand : Command {
     override val name = "xkcd"
     override val description = "Fetches xkcd comics and displays them. Maybe. Depends on the phase of the moon."
     override val usage = "xkcd [id | random]"

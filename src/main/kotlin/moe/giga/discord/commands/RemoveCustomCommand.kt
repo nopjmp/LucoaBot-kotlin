@@ -1,13 +1,12 @@
 package moe.giga.discord.commands
 
-import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.util.AccessLevel
 import moe.giga.discord.util.Database
 import java.sql.SQLException
 
-@IsCommand
-class RemoveCustomCommand : Command() {
+@Suppress("unused")
+class RemoveCustomCommand : Command {
     override val name = "removecustom"
     override val alias = "rc"
     override val description = "Removes a custom command"
