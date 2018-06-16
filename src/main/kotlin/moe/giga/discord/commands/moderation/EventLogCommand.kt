@@ -1,5 +1,6 @@
-package moe.giga.discord.commands
+package moe.giga.discord.commands.moderation
 
+import moe.giga.discord.commands.Command
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.contexts.ServerContext
 import moe.giga.discord.contexts.UserContext

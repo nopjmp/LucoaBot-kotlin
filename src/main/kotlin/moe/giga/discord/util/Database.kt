@@ -1,8 +1,8 @@
 package moe.giga.discord.util
 
 import moe.giga.discord.SettingsManager
-import moe.giga.discord.commands.AddCustomCommand
-import moe.giga.discord.commands.RemoveCustomCommand
+import moe.giga.discord.commands.custom.AddCustomCommand
+import moe.giga.discord.commands.custom.RemoveCustomCommand
 import moe.giga.discord.contexts.ServerContext
 import org.pmw.tinylog.Logger
 import org.sqlite.SQLiteConfig

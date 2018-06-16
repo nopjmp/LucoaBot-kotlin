@@ -1,5 +1,6 @@
-package moe.giga.discord.commands
+package moe.giga.discord.commands.roles
 
+import moe.giga.discord.commands.Command
 import moe.giga.discord.contexts.MessageContext
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.Role

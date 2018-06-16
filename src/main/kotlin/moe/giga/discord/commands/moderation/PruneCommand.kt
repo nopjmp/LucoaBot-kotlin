@@ -1,5 +1,6 @@
-package moe.giga.discord.commands
+package moe.giga.discord.commands.moderation
 
+import moe.giga.discord.commands.Command
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.util.AccessLevel
 import net.dv8tion.jda.core.entities.ChannelType
