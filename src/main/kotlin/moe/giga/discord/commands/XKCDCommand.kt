@@ -1,6 +1,7 @@
 package moe.giga.discord.commands
 
-import com.google.gson.Gson
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import moe.giga.discord.annotations.IsCommand
 import moe.giga.discord.contexts.MessageContext
 import net.dv8tion.jda.core.EmbedBuilder
@@ -16,12 +17,23 @@ class XKCDCommand : Command() {
 
     private val client = OkHttpClient()
 
-    private fun fetchData(url: String, action: (Response?) -> Unit, error: (IOException?) -> Unit) {
+    private val dataJsonAdapter = Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
+            .adapter(XKCDData::class.java)
+
+    private fun fetchData(url: String, action: (Response) -> Unit, error: (IOException?) -> Unit) {
         val request = Request.Builder()
                 .url(url)
                 .build()
 
-        client.newCall(request).enqueue(OkHttpCallbackProxy(action, error))
+        val func = { r: Response? ->
+            if (r == null || !r.isSuccessful)
+                throw IOException("Unexpected response")
+            action(r)
+        }
+
+        client.newCall(request).enqueue(OkHttpCallbackProxy(func, error))
     }
 
     override fun execute(MC: MessageContext, args: List<String>) {
@@ -37,22 +49,26 @@ class XKCDCommand : Command() {
             when {
                 args.isEmpty() -> {
                     fetchData("https://xkcd.com/info.0.json", {
-                        success(Gson().fromJson(it?.body()?.charStream(), XKCDData::class.java))
+                        success(dataJsonAdapter.fromJson(it.body()!!.source())
+                                ?: throw IOException("Unexpected response"))
                     }, errorAction)
                 }
                 args.first().startsWith("rand") -> {
                     fetchData("https://xkcd.com/info.0.json", {
-                        val info: XKCDData = Gson().fromJson(it?.body()?.charStream(), XKCDData::class.java)
+                        val info: XKCDData = dataJsonAdapter.fromJson(it.body()!!.source())
+                                ?: throw IOException("Unexpected response")
 
                         fetchData("https://xkcd.com/${(0..info.num + 1).random()}/info.0.json", {
-                            success(Gson().fromJson(it?.body()?.charStream(), XKCDData::class.java))
+                            success(dataJsonAdapter.fromJson(it.body()!!.source())
+                                    ?: throw IOException("Unexpected response"))
                         }, errorAction)
                     }, errorAction)
                 }
                 else -> {
                     val num = args.first().toInt()
                     fetchData("https://xkcd.com/info.$num.json", {
-                        success(Gson().fromJson(it?.body()?.charStream(), XKCDData::class.java))
+                        success(dataJsonAdapter.fromJson(it.body()!!.source())
+                                ?: throw IOException("Unexpected response"))
                     }, errorAction)
                 }
             }
