@@ -18,26 +18,47 @@ class HttpFetcher<T>(clazz: Class<T>) {
                 .url(url)
                 .build()
 
-        val func = { r: Response? ->
-            if (r == null || !r.isSuccessful)
-                throw IOException("Unexpected response")
-            val data = dataJsonAdapter.fromJson(r.body()!!.source()) ?: throw IOException("Unexpected response")
-            action(data)
-        }
-
-        client.newCall(request).enqueue(OkHttpCallbackProxy(func, error))
+        client.newCall(request).enqueue(OkHttpCallbackProxy(action, error))
     }
 
-    private class OkHttpCallbackProxy(private val success: (Response?) -> Unit, private val error: (IOException?) -> Unit) : Callback {
+    class IOExceptionWrapper(private val e: Exception) : IOException(e.message) {
+        override fun getStackTrace(): Array<StackTraceElement> {
+            return e.stackTrace
+        }
+
+        override val cause: Throwable?
+            get() = e.cause
+
+        override val message: String?
+            get() = e.message
+
+        override fun equals(other: Any?): Boolean {
+            return e == other
+        }
+
+        override fun hashCode(): Int {
+            return e.hashCode()
+        }
+    }
+
+    inner class OkHttpCallbackProxy(private val success: (T) -> Unit,
+                                    private val error: (IOException?) -> Unit) : Callback {
         override fun onFailure(call: Call?, e: IOException?) {
             error(e)
         }
 
-        override fun onResponse(call: Call?, response: Response?) {
-            if (response?.code() != 200) {
-                error(null)
-            } else {
-                success(response)
+        override fun onResponse(call: Call?, resp: Response?) {
+            try {
+                if (resp == null || !resp.isSuccessful)
+                    throw IOException("Unexpected response")
+                if (resp.code() != 200)
+                    throw IOException("Unexpected status code")
+
+                success(dataJsonAdapter.fromJson(resp.body()!!.source()) ?: throw IOException("Unexpected response"))
+            } catch (e: IOException) {
+                error(e)
+            } catch (e: Exception) {
+                error(IOExceptionWrapper(e))
             }
         }
     }

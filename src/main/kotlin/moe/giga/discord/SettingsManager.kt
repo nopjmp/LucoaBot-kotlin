@@ -17,6 +17,7 @@ class SettingsManager private constructor() {
         get() {
             val newSettings = Settings()
             newSettings.botToken = dotenv["DISCORD_TOKEN"]
+            newSettings.clientId = dotenv["DISCORD_CLIENT_ID"]
             newSettings.ownerId = dotenv["DISCORD_OWNER"]
             newSettings.dbPath = dotenv["DATA_PATH"]
             return newSettings
