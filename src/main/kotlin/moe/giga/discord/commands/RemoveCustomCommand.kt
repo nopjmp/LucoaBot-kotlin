@@ -10,6 +10,7 @@ import java.sql.SQLException
 class RemoveCustomCommand : Command() {
     override val name = "removecustom"
     override val alias = "rc"
+    override val description = "Removes a custom command"
     override val level = AccessLevel.MOD
 
     companion object {
