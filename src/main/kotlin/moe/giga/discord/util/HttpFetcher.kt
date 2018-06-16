@@ -54,7 +54,9 @@ class HttpFetcher<T>(clazz: Class<T>) {
                 if (resp.code() != 200)
                     throw IOException("Unexpected status code")
 
-                success(dataJsonAdapter.fromJson(resp.body()!!.source()) ?: throw IOException("Unexpected response"))
+                resp.body().use { body ->
+                    success(dataJsonAdapter.fromJson(body!!.source()) ?: throw IOException("Unexpected response"))
+                }
             } catch (e: IOException) {
                 error(e)
             } catch (e: Exception) {
