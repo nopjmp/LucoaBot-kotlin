@@ -11,6 +11,8 @@ class RoleSpecCommand : Command {
     override val usage = "rolespec <role spec> <role name>"
     override val level = AccessLevel.ADMIN
 
+    private val validSpecs = listOf("mod", "admin")
+
     override fun execute(MC: MessageContext, args: List<String>) {
         if (MC.serverCtx.guild == null)
             throw IllegalArgumentException("You can only use this command on a server.")
@@ -18,7 +20,7 @@ class RoleSpecCommand : Command {
         val roleSpec = args.first()
         val roleName = args[1]
 
-        if (roleSpec != "mod" || roleSpec != "admin") {
+        if (!validSpecs.contains(roleSpec)) {
             MC.sendError("You can only use `mod` or `admin` for the role spec.").queue()
         } else {
             val role = MC.serverCtx.guild.roles.find { it.name.compareTo(roleName, true) == 0 }
