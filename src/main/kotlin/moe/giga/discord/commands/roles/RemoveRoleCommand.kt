@@ -7,7 +7,7 @@ import moe.giga.discord.util.AccessLevel
 @Suppress("unused")
 class RemoveRoleCommand : Command {
     override val name = "removerole"
-    override val alias = "rsar"
+    override val aliases = arrayOf("rsar")
     override val description = "Removes role(s) from the self assignable role list."
     override val usage = "removerole <role>"
     override val level = AccessLevel.MOD

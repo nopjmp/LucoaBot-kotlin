@@ -1,7 +1,6 @@
 package moe.giga.discord.commands
 
 import moe.giga.discord.LucoaBot
-import moe.giga.discord.SettingsManager
 import moe.giga.discord.contexts.MessageContext
 import net.dv8tion.jda.core.EmbedBuilder
 
@@ -9,19 +8,17 @@ import net.dv8tion.jda.core.EmbedBuilder
 @Suppress("unused")
 class HelpCommand : Command {
     override val name = "help"
-    override val alias = "commands"
+    override val aliases = arrayOf("commands")
     override val description = "Shows avaliable commands"
-    override val usage = "commands [text (defaults to embed)]"
-
-    companion object {
-        const val authorizeUrl = "https://discordapp.com/api/oauth2/authorize"
-    }
+    override val usage = "commands [command name or all [text (defaults to embed)]]"
 
     override fun execute(MC: MessageContext, args: List<String>) {
         fun generateField(command: Command): Pair<String, String> {
             val sb = StringBuilder()
-            command.alias?.let {
-                sb.append("*Alias: $it*\n")
+            if (command.aliases.isNotEmpty()) {
+                command.aliases.let {
+                    sb.append("*Aliases: ${it.joinToString()}*\n")
+                }
             }
 
             sb.append("*Access Level: ${command.level}*\n")
@@ -29,28 +26,37 @@ class HelpCommand : Command {
             return Pair(MC.serverCtx.prefix + command.usage, sb.toString())
         }
 
-        val textOnly = (args.getOrNull(0) ?: "").compareTo("text", true) == 0
-        val helpPairs = LucoaBot.handler.commands
+        val arg = args.getOrNull(0)
+        val search = when (arg) {
+            null -> ""
+            "all" -> ""
+            else -> arg
+        }
+
+        val textOnly = (args.getOrNull(1) ?: "").compareTo("text", true) == 0
+        val initHelpPairs = LucoaBot.handler.commands
                 .filter { !it.hidden && MC.userCtx.allowed(it.level) }
                 .sortedBy { it.name }
-                .map(::generateField)
 
-        if (textOnly) {
-            val sb = StringBuilder()
-            helpPairs.forEach { sb.append("**${it.first}**\n${it.second}\n") }
+        val helpPairs = when (search) {
+            "" -> initHelpPairs
+            else -> initHelpPairs.filter { it.name == search || it.aliases.contains(search) }
+        }
 
-            sb.append("**Invite Link**\n" +
-                    "$authorizeUrl?client_id=${SettingsManager.instance.settings.clientId}&permissions=8&scope=bot\n")
-
-            MC.sendMessage(sb.toString()).queue()
+        if (helpPairs.isEmpty()) {
+            MC.sendMessage("Command `$search` not found!").queue()
         } else {
-            val embedBuilder = EmbedBuilder().setTitle("Bot Commands")
-            helpPairs.forEach { embedBuilder.addField(it.first, it.second, false) }
+            if (textOnly) {
+                val sb = StringBuilder()
+                helpPairs.map(::generateField).forEach { sb.append("**${it.first}**\n${it.second}\n") }
 
-            embedBuilder.addField("Invite Link",
-                    "$authorizeUrl?client_id=${SettingsManager.instance.settings.clientId}&permissions=8&scope=bot", false)
+                MC.sendMessage(sb.toString()).queue()
+            } else {
+                val embedBuilder = EmbedBuilder().setTitle("Bot Commands")
+                helpPairs.map(::generateField).forEach { embedBuilder.addField(it.first, it.second, false) }
 
-            MC.sendMessage(embedBuilder.build()).queue()
+                MC.sendMessage(embedBuilder.build()).queue()
+            }
         }
     }
 }

@@ -6,7 +6,7 @@ import moe.giga.discord.contexts.MessageContext
 @Suppress("unused")
 class IamNotCommand : Command {
     override val name = "iamnot"
-    override val alias = "nr"
+    override val aliases = arrayOf("iamn", "nr")
     override val description = "Removes roles from the user running this command."
     override val usage = "iamnot <role>"
 
@@ -17,26 +17,24 @@ class IamNotCommand : Command {
         val roleName = args.joinToString(separator = " ")
 
         val foundRoles = MC.serverCtx.guild.getRolesByName(roleName, true)
-        if (foundRoles.count() > 0) {
-            val role = foundRoles.first()
+        val role = foundRoles.firstOrNull()
+                ?: throw IllegalArgumentException("`$roleName` not found as a role on this server.")
 
-            if (MC.serverCtx.getServerSelfRoles()
-                            .filterValues { it.contains(role.id) }
-                            .isNotEmpty()) {
-                val member = MC.userCtx.member
-                if (member != null) {
-                    if (!member.roles.contains(role)) {
-                        MC.sendError("${MC.userCtx.asText}... You don't already have **${role.name}**.").queue()
-                    } else {
-                        MC.serverCtx.guild.controller.removeRolesFromMember(member, role).queue {
-                            MC.sendMessage("${MC.userCtx.asText} no longer has **${role.name}**").queue()
-                        }
-                    }
-                }
-                return
-            }
+        if (MC.serverCtx.getServerSelfRoles()
+                        .filterValues { it.contains(role.id) }
+                        .isEmpty()) {
+            throw IllegalArgumentException("`${role.name}` is not a self-assignable role.")
         }
 
-        MC.sendError("`$roleName` not found as a role on this server.").queue()
+        val member = MC.userCtx.member
+        if (member != null) {
+            if (!member.roles.contains(role)) {
+                MC.sendError("${MC.userCtx.asText}... You don't already have **${role.name}**.").queue()
+            } else {
+                MC.serverCtx.guild.controller.removeRolesFromMember(member, role).queue {
+                    MC.sendMessage("${MC.userCtx.asText} no longer has **${role.name}**").queue()
+                }
+            }
+        }
     }
 }

@@ -7,7 +7,7 @@ import moe.giga.discord.util.AccessLevel
 @Suppress("unused")
 class AddRoleCommand : Command {
     override val name = "addrole"
-    override val alias = "asar"
+    override val aliases = arrayOf("asar")
     override val description = "Adds role(s) to the self assignable role list."
     override val usage = "addrole <role> <group>"
     override val level = AccessLevel.MOD

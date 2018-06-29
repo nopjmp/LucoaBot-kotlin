@@ -8,7 +8,7 @@ import net.dv8tion.jda.core.entities.Role
 @Suppress("unused")
 class RolesCommand : Command {
     override val name = "roles"
-    override val alias = "lsar"
+    override val aliases = arrayOf("lsar")
     override val description = "Lists self assignable roles. Defaults to $AS_MENTION_WORD as mentions."
     override val usage = "roles <mentions ($AS_MENTION)>"
 

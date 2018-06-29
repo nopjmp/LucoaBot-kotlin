@@ -17,8 +17,8 @@ interface Command {
         get() = ""
     val usage: String
         get() = name
-    val alias: String?
-        get() = null
+    val aliases: Array<String>
+        get() = arrayOf()
     val hidden: Boolean
         get() = false
     val level: AccessLevel

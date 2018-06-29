@@ -10,7 +10,7 @@ import java.sql.SQLException
 @Suppress("unused")
 class AddCustomCommand : Command {
     override val name = "addcustom"
-    override val alias = "ac"
+    override val aliases = arrayOf("ac")
     override val usage = "addcustom <command> <response>"
     override val description = "Adds custom commands to be used by anyone"
     override val level = AccessLevel.MOD

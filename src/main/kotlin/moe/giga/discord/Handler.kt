@@ -14,12 +14,17 @@ import kotlin.concurrent.timer
 
 class Handler internal constructor(val commands: List<Command>) {
     private val commandMap = commands.associateBy { it.name }
-    private val aliasMap = commands
-            .filter { it.alias != null }
-            .associateBy { it.alias }
+    private val aliasMap = mutableMapOf<String, Command>()
 
     // TODO: add ability to escape double quotes
     private val splitRegex = Regex("([\"'])((?:\\\\\\1|.)*?)\\1|[^ '\"]+")
+
+    init {
+        commands.filter { it.aliases.isNotEmpty() }
+                .forEach { command ->
+                    command.aliases.forEach { aliasMap[it] = command }
+                }
+    }
 
     fun hasCommand(name: String) =
             commandMap.containsKey(name) or aliasMap.containsKey(name)

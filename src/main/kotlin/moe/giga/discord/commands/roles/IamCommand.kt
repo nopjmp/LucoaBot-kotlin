@@ -6,7 +6,7 @@ import moe.giga.discord.contexts.MessageContext
 @Suppress("unused")
 class IamCommand : Command {
     override val name = "iam"
-    override val alias = "r"
+    override val aliases = arrayOf("r")
     override val description = "Assigns roles to the user running this command."
     override val usage = "iam <role>"
 

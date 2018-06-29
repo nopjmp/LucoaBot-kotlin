@@ -9,7 +9,7 @@ import java.sql.SQLException
 @Suppress("unused")
 class RemoveCustomCommand : Command {
     override val name = "removecustom"
-    override val alias = "rc"
+    override val aliases = arrayOf("rc")
     override val description = "Removes a custom command"
     override val level = AccessLevel.MOD
 
