@@ -2,6 +2,7 @@ package moe.giga.discord
 
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner
 import moe.giga.discord.commands.Command
+import moe.giga.discord.listeners.BotListener
 import moe.giga.discord.util.Database
 import net.dv8tion.jda.core.AccountType
 import net.dv8tion.jda.core.JDABuilder
@@ -37,9 +38,14 @@ object LucoaBot {
         try {
             val jdaBuilder = JDABuilder(AccountType.BOT).setToken(settings.botToken)
 
-            handler = Handler(findCommands().apply { forEach { it.init(jdaBuilder) } })
             jdaBuilder.setEventManager(AnnotatedEventManager())
+
+            handler = Handler(findCommands().apply { forEach { it.init(jdaBuilder) } })
             jdaBuilder.addEventListener(handler)
+
+            findAnnotation("moe.giga.discord.listeners", BotListener::class.java) { clazz ->
+                jdaBuilder.addEventListener(clazz.getDeclaredConstructor().newInstance())
+            }
 
             jdaBuilder.buildAsync()
         } catch (e: LoginException) {
@@ -55,12 +61,23 @@ object LucoaBot {
 
     private fun findCommands(): List<Command> {
         val commands = mutableListOf<Command>()
-        FastClasspathScanner("moe.giga.discord.commands")
-                .setAnnotationVisibility(RetentionPolicy.RUNTIME)
-                .matchClassesImplementing(Command::class.java) { clazz ->
-                    commands.add(clazz.getDeclaredConstructor().newInstance())
-                }
-                .scan()
+        findImplementing("moe.giga.discord.commands", Command::class.java) { clazz ->
+            commands.add(clazz.getDeclaredConstructor().newInstance())
+        }
         return commands
+    }
+
+    private fun <T> findAnnotation(path: String, clazz: Class<T>, action: (Class<*>) -> Unit) {
+        FastClasspathScanner(path)
+                .setAnnotationVisibility(RetentionPolicy.RUNTIME)
+                .matchClassesWithAnnotation(clazz, action)
+                .scan()
+    }
+
+    private fun <T> findImplementing(path: String, clazz: Class<T>, action: (Class<out T>) -> Unit) {
+        FastClasspathScanner(path)
+                .setAnnotationVisibility(RetentionPolicy.RUNTIME)
+                .matchClassesImplementing(clazz, action)
+                .scan()
     }
 }
