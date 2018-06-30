@@ -1,6 +1,5 @@
-package moe.giga.discord.util
+package moe.giga.discord
 
-import moe.giga.discord.SettingsManager
 import moe.giga.discord.commands.custom.AddCustomCommand
 import moe.giga.discord.commands.custom.RemoveCustomCommand
 import moe.giga.discord.contexts.ServerContext

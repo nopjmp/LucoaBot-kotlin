@@ -1,7 +1,7 @@
 package moe.giga.discord.contexts
 
+import moe.giga.discord.Database
 import moe.giga.discord.util.AccessLevel
-import moe.giga.discord.util.Database
 import moe.giga.discord.util.EventLogType
 import moe.giga.discord.util.isEmpty
 import net.dv8tion.jda.core.entities.Guild

@@ -39,7 +39,7 @@ class Handler internal constructor(val commands: List<Command>) {
     // TODO: allow multiple word commands, probably will need a trie structure to find the commands, or regex lol
     @SubscribeEvent
     fun handleMessage(event: MessageReceivedEvent) {
-        LucoaBot.statistics.incrementMessages()
+        LucoaBot.statistics.messages.incrementAndGet()
         if (!event.isWebhookMessage && event.author != event.jda.selfUser && !event.author.isBot) {
             val serverContext = ServerContext(event.guild)
 
@@ -59,7 +59,7 @@ class Handler internal constructor(val commands: List<Command>) {
 
     private fun processCommand(mc: MessageContext, command: Command, args: List<String>) {
         if (mc.userCtx.allowed(command.level)) {
-            LucoaBot.statistics.incrementCommands()
+            LucoaBot.statistics.processedCommands.incrementAndGet()
             try {
                 command.execute(mc, args)
             } catch (e: IllegalArgumentException) {
@@ -75,7 +75,7 @@ class Handler internal constructor(val commands: List<Command>) {
 
     private fun processCustom(event: MessageReceivedEvent, name: String, serverContext: ServerContext) {
         serverContext.findCustomCommand(name)?.let {
-            LucoaBot.statistics.incrementCommands()
+            LucoaBot.statistics.processedCommands.incrementAndGet()
             event.channel.sendMessage(MessageBuilder().append(it)
                     .stripMentions(event.jda, Message.MentionType.EVERYONE, Message.MentionType.HERE)
                     .build()).queue()

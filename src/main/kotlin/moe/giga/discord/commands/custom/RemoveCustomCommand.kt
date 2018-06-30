@@ -1,9 +1,9 @@
 package moe.giga.discord.commands.custom
 
+import moe.giga.discord.Database
 import moe.giga.discord.commands.Command
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.util.AccessLevel
-import moe.giga.discord.util.Database
 import java.sql.SQLException
 
 @Suppress("unused")

@@ -4,8 +4,8 @@ import moe.giga.discord.commands.Command
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.util.username
 import net.dv8tion.jda.core.EmbedBuilder
-import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.Permission
+import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.utils.PermissionUtil
 import java.time.Instant
 
@@ -29,16 +29,17 @@ class UserInfoCommand : Command {
     private fun isApplied(permissions: Long, perms: Permission) =
             permissions and perms.rawValue == perms.rawValue
 
-    private fun resolveUser(jda: JDA, arg: String) =
-            jda.userCache.find { it.id == arg || it.name == arg || it.username() == arg || it.asMention == arg }
-                    ?: throw IllegalArgumentException("No such user found.")
+    private fun resolveUser(guild: Guild, arg: String) =
+            guild.memberCache.find {
+                it.user.id == arg || it.user.name == arg || it.user.username() == arg || it.nickname == arg || it.asMention == arg
+            }?.user ?: throw IllegalArgumentException("No such user found.")
 
     override fun execute(MC: MessageContext, args: List<String>) {
         if (MC.serverCtx.guild == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 
-        val arg = args.firstOrNull()
-        val user = if (arg != null) resolveUser(MC.jda, arg) else MC.userCtx.user
+        val arg = args.joinToString()
+        val user = if (arg.isNotBlank()) resolveUser(MC.serverCtx.guild, arg) else MC.userCtx.user
         val member = MC.serverCtx.guild.getMember(user) ?: throw IllegalArgumentException("User not on server.")
         val effectivePermission = PermissionUtil.getEffectivePermission(member)
 

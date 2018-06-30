@@ -3,7 +3,6 @@ package moe.giga.discord
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner
 import moe.giga.discord.commands.Command
 import moe.giga.discord.listeners.BotListener
-import moe.giga.discord.util.Database
 import net.dv8tion.jda.core.AccountType
 import net.dv8tion.jda.core.JDABuilder
 import net.dv8tion.jda.core.hooks.AnnotatedEventManager
