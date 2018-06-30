@@ -38,7 +38,7 @@ class UserInfoCommand : Command {
         if (MC.serverCtx.guild == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 
-        val arg = args.joinToString()
+        val arg = args.joinToString(" ")
         val user = if (arg.isNotBlank()) resolveUser(MC.serverCtx.guild, arg) else MC.userCtx.user
         val member = MC.serverCtx.guild.getMember(user) ?: throw IllegalArgumentException("User not on server.")
         val effectivePermission = PermissionUtil.getEffectivePermission(member)
