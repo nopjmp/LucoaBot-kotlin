@@ -14,7 +14,7 @@ class RoleSpecCommand : Command {
     private val validSpecs = listOf("mod", "admin")
 
     override fun execute(MC: MessageContext, args: List<String>) {
-        if (MC.serverCtx.guild == null)
+        if (MC.serverCtx == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 
         val roleSpec = args.first()
@@ -25,7 +25,7 @@ class RoleSpecCommand : Command {
         } else {
             val role = MC.serverCtx.guild.roles.find { it.name.compareTo(roleName, true) == 0 }
                     ?: throw IllegalArgumentException("`$roleName` not role as a role on this server.")
-            MC.serverCtx.addSpecRole(roleSpec, role.name)
+            MC.serverCtx.addSpecRole(roleSpec, role.idLong)
             MC.sendMessage("Role ${role.name} => $roleSpec permissions").queue()
         }
     }

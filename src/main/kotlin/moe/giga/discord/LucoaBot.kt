@@ -1,6 +1,7 @@
 package moe.giga.discord
 
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner
+import kotliquery.HikariCP
 import moe.giga.discord.commands.Command
 import moe.giga.discord.listeners.BotListener
 import net.dv8tion.jda.core.AccountType
@@ -25,7 +26,6 @@ object LucoaBot {
     @JvmStatic
     fun main(args: Array<String>) {
         if (System.getProperty("file.encoding") == "UTF-8") {
-            Database // initialise database first to prevent recursion
             setupBot()
         } else {
             Logger.error("Please relaunch with file.encoding set to UTF-8")
@@ -35,6 +35,14 @@ object LucoaBot {
     private fun setupBot() {
         val settings = SettingsManager.instance.settings
         try {
+            if (settings.datasource == null || settings.username == null || settings.password == null) {
+                System.exit(LucoaBot.INVALID_SETTINGS)
+                return
+            }
+
+            // TODO: clean this up
+            HikariCP.default(settings.datasource, settings.username, settings.password)
+
             val jdaBuilder = JDABuilder(AccountType.BOT).setToken(settings.botToken)
 
             jdaBuilder.setEventManager(AnnotatedEventManager())

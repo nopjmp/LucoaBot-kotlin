@@ -13,7 +13,7 @@ class RemoveRoleCommand : Command {
     override val level = AccessLevel.MOD
 
     override fun execute(MC: MessageContext, args: List<String>) {
-        if (MC.serverCtx.guild == null)
+        if (MC.serverCtx == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 
         val roleName = args.first()
@@ -21,8 +21,8 @@ class RemoveRoleCommand : Command {
         val foundRole = MC.serverCtx.guild.roles.find { it.name.compareTo(roleName, true) == 0 }
                 ?: throw IllegalArgumentException("`$roleName` not found as a role on this server.")
 
-        if (MC.serverCtx.getServerSelfRoles().count { it.value.contains(foundRole.id) } > 0) {
-            MC.serverCtx.deleteSelfRole(foundRole.id)
+        if (MC.serverCtx.getServerSelfRoles().count { it.value.contains(foundRole.idLong) } > 0) {
+            MC.serverCtx.deleteSelfRole(foundRole.idLong)
 
             MC.sendMessage("**${foundRole.name}** is no longer self assignable.").queue()
         } else {

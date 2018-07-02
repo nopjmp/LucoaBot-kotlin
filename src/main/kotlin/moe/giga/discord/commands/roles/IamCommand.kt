@@ -11,7 +11,7 @@ class IamCommand : Command {
     override val usage = "iam <role>"
 
     override fun execute(MC: MessageContext, args: List<String>) {
-        if (MC.serverCtx.guild == null)
+        if (MC.serverCtx == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 
         val roleName = args.joinToString(separator = " ")
@@ -21,7 +21,7 @@ class IamCommand : Command {
 
         val selfRoles = MC.serverCtx.getServerSelfRoles()
         val key = selfRoles
-                .filterValues { it.contains(role.id) }
+                .filterValues { it.contains(role.idLong) }
                 .map { it.key }
                 .firstOrNull() ?: throw IllegalArgumentException("`${role.name}` is not a self-assignable role.")
 
@@ -32,7 +32,7 @@ class IamCommand : Command {
             val controller = MC.serverCtx.guild.controller
 
             if (key != "default") {
-                val filtered = member.roles.filter { selfRoles.getValue(key).contains(it.id) }
+                val filtered = member.roles.filter { selfRoles.getValue(key).contains(it.idLong) }
                 controller.removeRolesFromMember(member, filtered).queue()
             }
 

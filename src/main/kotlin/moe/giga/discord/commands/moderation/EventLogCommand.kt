@@ -24,12 +24,15 @@ class EventLogCommand : Command {
     }
 
     override fun execute(MC: MessageContext, args: List<String>) {
+        if (MC.serverCtx == null)
+            throw IllegalArgumentException("You can only use this command on a server.")
+
         if (args.isNotEmpty()) {
             if (args[0].equals("none", ignoreCase = true)) {
-                MC.serverCtx.deleteEventLog(MC.channel.id)
+                MC.serverCtx.deleteEventLog(MC.channel.idLong)
             }
         } else {
-            MC.serverCtx.setEventLog(EventLogType.ALL, MC.channel.id)
+            MC.serverCtx.setEventLog(EventLogType.ALL, MC.channel.idLong)
             MC.sendMessage("Event log set to ${MC.channel.name}").queue()
             return
         }
@@ -37,8 +40,8 @@ class EventLogCommand : Command {
     }
 
     // TODO: make embed version?
-    private fun notify(serverContext: ServerContext, channelIds: List<String>, message: String) {
-        val channels = channelIds.map { serverContext.guild!!.getTextChannelById(it) }
+    private fun notify(serverContext: ServerContext, channelIds: List<Long>, message: String) {
+        val channels = channelIds.map { serverContext.guild.getTextChannelById(it) }
                 .filter { it != null }
         channels.forEach { it.sendMessage(message).queue() }
     }

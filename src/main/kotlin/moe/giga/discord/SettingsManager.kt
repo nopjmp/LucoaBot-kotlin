@@ -13,22 +13,18 @@ class SettingsManager private constructor() {
         ignoreIfMissing = true
     }
 
-    private val envSettings: Settings
-        get() {
-            val newSettings = Settings()
-            newSettings.botToken = dotenv["DISCORD_TOKEN"]
-            newSettings.clientId = dotenv["DISCORD_CLIENT_ID"]
-            newSettings.ownerId = dotenv["DISCORD_OWNER"]
-            newSettings.dbPath = dotenv["DATA_PATH"]
-            return newSettings
-        }
+    private val envSettings = Settings(
+            dotenv["DISCORD_TOKEN"],
+            dotenv["DISCORD_CLIENT_ID"],
+            dotenv["DISCORD_OWNER"],
+            dotenv["DATASOURCE"],
+            dotenv["USERNAME"],
+            dotenv["PASSWORD"]
+    )
 
     init {
         Logger.info("Loading settings from environment.")
         this.settings = envSettings
-        if (this.settings.dbPath == null) {
-            System.exit(LucoaBot.INVALID_SETTINGS)
-        }
     }
 
     private object Holder {

@@ -1,9 +1,11 @@
 package moe.giga.discord
 
 // TODO: add proxy and other api keys here
-class Settings {
-    var botToken: String? = null
-    var clientId: String? = null
-    var ownerId: String? = null
-    var dbPath: String? = null
-}
+data class Settings(
+        val botToken: String? = null,
+        val clientId: String? = null,
+        val ownerId: String? = null,
+        val datasource: String? = null,
+        val username: String? = null,
+        val password: String? = null
+)

@@ -1,303 +1,144 @@
 package moe.giga.discord.contexts
 
-import moe.giga.discord.Database
+import kotliquery.*
 import moe.giga.discord.util.AccessLevel
 import moe.giga.discord.util.EventLogType
-import moe.giga.discord.util.isEmpty
 import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.User
-import java.sql.SQLException
 import kotlin.reflect.KProperty
 
 // log events structure?
-class ServerContext(val guild: Guild?) {
-    inner class DatabaseProp(private var field: String, private val columnName: String) {
-        private val getSQL = "SELECT $columnName FROM servers WHERE server_id = ?"
+class ServerContext(val guild: Guild) {
+    inner class DatabaseProp<T>(columnName: String, mapFunc: (Row) -> T, private val default: T) {
+        private val getSQL = queryOf("SELECT $columnName FROM servers WHERE server_id = ?", guild.idLong)
+                .map(mapFunc).asSingle
         private val setSQL = "UPDATE servers SET $columnName = ? WHERE server_id = ?"
-        operator fun getValue(thisRef: Any?, p: KProperty<*>): String {
-            guild?.let { guild ->
-                try {
-                    Database.connection.prepareStatement(getSQL).use {
-                        it.setString(1, guild.id)
-                        it.executeQuery().use { r ->
-                            if (!r.isEmpty()) field = r.getString(columnName) ?: ""
-                        }
-                    }
-                } catch (e: SQLException) {
-                    e.printStackTrace()
-                }
-            }
 
-            return field
+        operator fun getValue(thisRef: Any?, p: KProperty<*>): T {
+            return using(sessionOf(HikariCP.dataSource())) { session ->
+                session.run(getSQL)
+            } ?: default
         }
 
-        operator fun setValue(thisRef: Any?, p: KProperty<*>, v: String) {
-            guild?.let {
-                try {
-                    Database.connection.prepareStatement(setSQL).use {
-                        it.setString(1, v)
-                        it.setString(2, guild.id)
-                        it.executeUpdate()
-                    }
-                } catch (e: SQLException) {
-                    e.printStackTrace()
-                }
+        operator fun setValue(thisRef: Any?, p: KProperty<*>, v: T) {
+            using(sessionOf(HikariCP.dataSource())) { session ->
+                session.run(queryOf(setSQL, v, guild.idLong).asUpdate)
             }
-            field = v
         }
     }
 
     // TODO: this is mostly an experiment, I should probably use an ORM or something
-    var prefix by DatabaseProp(".", "prefix")
-    var starChannel by DatabaseProp("", "star_channel")
-    //var logChannel = DatabaseProp("", "log_channel")
+    var prefix by DatabaseProp("prefix", { it.string("prefix") }, ".")
+    var starChannel by DatabaseProp("star_channel", { it.longOrNull("star_channel") }, null)
 
     companion object {
-        const val FETCH_SERVER_ROLES = "serverRolesOp"
-        const val FETCH_SERVER = "serverOp"
-        const val FETCH_SELF_ROLES = "serverSelfRolesOp"
-        const val INSERT_SERVER = "serverAddOp"
-        const val INSERT_ROLE_SPEC = "serverRoleSpecAddOp"
-        const val INSERT_SELF_ROLE = "serverSelfRoleAddOp"
-        const val DELETE_SELF_ROLE = "serverSelfRoleDeleteOp"
-        const val SAVE_SERVER = "serverSaveOp"
-        const val FETCH_STAR_EVENT_LOG = "serverEventLogFetchStarOp"
-        const val FETCH_EVENT_LOG = "serverEventLogFetchOp"
-        const val DELETE_EVENT_LOG = "serverEventLogDeleteOp"
-        const val UPDATE_EVENT_LOG = "serverEventLogUpdateOp"
-        const val FETCH_CUSTOM_COMMANDS = "serverCustomCommandsOp"
-        const val FIND_CUSTOM_COMMAND = "serverCustomCommandsFindOp"
+        const val FETCH_SERVER_ROLES = "SELECT role_spec, role_id FROM servers_roles WHERE server_id = ?"
+        const val FETCH_SERVER = "SELECT server_id FROM servers WHERE server_id = ?"
+        const val INSERT_SERVER = "INSERT INTO servers (server_id, prefix, log_channel, star_channel) VALUES (?, \".\", null, null)"
+        const val INSERT_ROLE_SPEC = "INSERT INTO servers_roles(server_id, role_spec, role_id) VALUES (?, ?, ?) " +
+                "ON CONFLICT (server_id, role_spec) DO UPDATE " +
+                "SET role_id = excluded.role_id"
+        const val INSERT_SELF_ROLE = "INSERT INTO servers_self_roles(server_id, role_spec, role_id) VALUES (?, ?, ?)"
+        const val DELETE_SELF_ROLE = "DELETE FROM servers_self_roles WHERE server_id = ? AND role_id = ?"
+        const val FETCH_SELF_ROLES = "SELECT * FROM servers_self_roles WHERE server_id = ?"
+        const val DELETE_EVENT_LOG = "DELETE FROM servers_logs WHERE server_id = ? AND channel_id = ?"
+        const val FETCH_STAR_EVENT_LOG = "SELECT channel_id FROM servers_logs WHERE server_id = ? AND event_name = '*'"
+        const val UPDATE_EVENT_LOG = "INSERT INTO servers_logs (server_id, event_name, channel_id) VALUES (?, ?, ?)"
+        const val FETCH_EVENT_LOG = "SELECT channel_id FROM servers_logs WHERE server_id = ? AND (event_name = ? OR event_name = '*')"
+        const val FIND_CUSTOM_COMMAND = "SELECT response FROM custom_commands WHERE server_id = ? AND command = ?"
     }
 
-    private fun serverRoles(): Map<String, String> {
-        if (guild != null) {
-            try {
-                return Database.withStatement(FETCH_SERVER_ROLES) {
-                    setString(1, guild.id)
-                    executeQuery().use { r ->
-                        val roles = hashMapOf<String, String>()
-                        while (r.next()) {
-                            roles[r.getString("role_spec")] = r.getString("role_id")
-                        }
-                        roles
-                    }
-                }
-            } catch (e: SQLException) {
-                e.printStackTrace()
-            }
+    private fun serverRoles(): Map<String, Long> {
+        val selectQuery = queryOf(FETCH_SERVER_ROLES, guild.idLong)
+                .map { Pair(it.string("role_spec"), it.long("role_id")) }.asList
+        return using(sessionOf(HikariCP.dataSource())) { session ->
+            session.run(selectQuery).associate { it }
         }
-        return mapOf()
     }
 
     init {
-        if (guild != null) {
-            try {
-                val exists = Database.withStatement(FETCH_SERVER) {
-                    setString(1, guild.id)
-                    executeQuery().use { rs -> !rs.isEmpty() }
-                }
-
-                if (!exists) {
-                    Database.withStatement(INSERT_SERVER) {
-                        setString(1, guild.id)
-                        executeUpdate()
-                    }
-                }
-            } catch (e: SQLException) {
-                e.printStackTrace()
+        using(sessionOf(HikariCP.dataSource())) { session ->
+            if (session.run(queryOf(FETCH_SERVER, guild.idLong)
+                            .map { it.longOrNull("server_id") }.asSingle) == null) {
+                session.run(queryOf(INSERT_SERVER, guild.idLong).asUpdate)
             }
         }
     }
 
-    internal fun addSpecRole(spec: String, id: String) {
-        if (guild != null) {
-            try {
-                Database.withStatement(INSERT_ROLE_SPEC) {
-                    setString(1, guild.id)
-                    setString(2, spec)
-                    setString(3, id)
-
-                    executeUpdate()
-                }
-            } catch (e: SQLException) {
-                e.printStackTrace()
-            }
+    internal fun addSpecRole(spec: String, id: Long) {
+        using(sessionOf(HikariCP.dataSource())) { session ->
+            session.run(queryOf(INSERT_ROLE_SPEC, guild.idLong, spec, id).asUpdate)
         }
     }
 
-    internal fun addSelfRole(group: String, id: String) {
-        if (guild != null) {
-            try {
-                Database.withStatement(INSERT_SELF_ROLE) {
-                    setString(1, guild.id)
-                    setString(2, group)
-                    setString(3, id)
-                    executeUpdate()
-                }
-            } catch (e: SQLException) {
-                e.printStackTrace()
-            }
+    internal fun addSelfRole(group: String, id: Long) {
+        using(sessionOf(HikariCP.dataSource())) { session ->
+            session.run(queryOf(INSERT_SELF_ROLE, guild.idLong, group, id).asUpdate)
         }
     }
 
-    internal fun deleteSelfRole(id: String) {
-        if (guild != null) {
-            try {
-                Database.withStatement(DELETE_SELF_ROLE) {
-                    setString(1, guild.id)
-                    setString(2, id)
-                    executeUpdate()
-                }
-            } catch (e: SQLException) {
-                e.printStackTrace()
-            }
+    internal fun deleteSelfRole(id: Long) {
+        using(sessionOf(HikariCP.dataSource())) { session ->
+            session.run(queryOf(DELETE_SELF_ROLE, guild.idLong, id).asUpdate)
         }
     }
 
 
-    internal fun getServerSelfRoles(): Map<String, List<String>> {
-        if (guild != null) {
-            try {
-                return Database.withStatement(FETCH_SELF_ROLES) {
-                    setString(1, guild.id)
-
-                    executeQuery().use { rs ->
-                        val roleList = mutableListOf<Pair<String, String>>()
-                        while (rs.next()) {
-                            val roleSpec = rs.getString("role_spec")
-                            val roleId = rs.getString("role_id")
-
-                            roleList.add(Pair(roleSpec, roleId))
-                        }
-                        roleList.groupBy({ it.first }, { it.second })
-                    }
-                }
-            } catch (e: SQLException) {
-                e.printStackTrace()
-            }
+    internal fun getServerSelfRoles(): Map<String, List<Long>> {
+        return using(sessionOf(HikariCP.dataSource())) { session ->
+            session.run(queryOf(FETCH_SELF_ROLES, guild.idLong)
+                    .map { Pair(it.string("role_spec"), it.long("role_id")) }.asList)
+                    .groupBy({ it.first }, { it.second })
         }
-
-        return mapOf()
     }
 
-    internal fun getMember(user: User): Member? = guild?.getMember(user)
+    internal fun getMember(user: User): Member? = guild.getMember(user)
     internal fun resolvePermissions(user: User): AccessLevel {
-        if (guild != null) {
-            val roles = serverRoles().mapValues { guild.getRoleById(it.value) }
-            val member = getMember(user)
-            if (member != null) {
-                if (roles["admin"] != null) {
-                    if (member.roles.contains(roles["admin"])) {
-                        return AccessLevel.ADMIN
-                    }
+        val roles = serverRoles().mapValues { guild.getRoleById(it.value) }
+        val member = getMember(user)
+        if (member != null) {
+            if (roles["admin"] != null) {
+                if (member.roles.contains(roles["admin"])) {
+                    return AccessLevel.ADMIN
                 }
+            }
 
-                if (roles["mod"] != null) {
-                    if (member.roles.contains(roles["mod"])) {
-                        return AccessLevel.MOD
-                    }
+            if (roles["mod"] != null) {
+                if (member.roles.contains(roles["mod"])) {
+                    return AccessLevel.MOD
                 }
             }
         }
         return AccessLevel.USER
     }
 
-    internal fun deleteEventLog(channel: String) {
-        if (guild != null) {
-            try {
-                Database.withStatement(DELETE_EVENT_LOG) {
-                    setString(1, guild.id)
-                    setString(2, channel)
-                    executeUpdate()
-                }
-            } catch (e: SQLException) {
-                e.printStackTrace()
-            }
+    internal fun deleteEventLog(channel: Long) {
+        using(sessionOf(HikariCP.dataSource())) { session ->
+            session.run(queryOf(DELETE_EVENT_LOG, guild.idLong, channel).asUpdate)
         }
     }
 
-    internal fun setEventLog(eventLogType: EventLogType, channel: String): Boolean {
-        if (guild != null) {
-            try {
-                Database.withStatement(FETCH_STAR_EVENT_LOG) {
-                    executeQuery().use { rs ->
-                        if (!rs.isEmpty()) {
-                            val allChannel = rs.getString("channel_id")
-                            if (allChannel == channel) {
-                                return false
-                            }
-                        }
-                    }
-                }
-
-                return Database.withStatement(UPDATE_EVENT_LOG) {
-                    setString(1, guild.id)
-                    setString(2, eventLogType.toString())
-                    setString(3, channel)
-                    executeUpdate() > 0
-                }
-            } catch (e: SQLException) {
-                e.printStackTrace()
+    internal fun setEventLog(eventLogType: EventLogType, channel: Long): Boolean {
+        return using(sessionOf(HikariCP.dataSource())) { session ->
+            val list = session.run(queryOf(FETCH_STAR_EVENT_LOG, guild.idLong).map { it.long("channel_id") }.asList)
+            if (list.contains(channel)) {
+                return@using 0
             }
-        }
-        return false
+
+            session.run(queryOf(UPDATE_EVENT_LOG, guild.idLong, eventLogType.toString(), channel).asUpdate)
+        } > 0
     }
 
-    internal fun logEvent(eventLogType: EventLogType): List<String> {
-        if (guild != null) {
-            try {
-                return Database.withStatement(FETCH_EVENT_LOG) {
-                    setString(1, guild.id)
-                    setString(2, eventLogType.toString())
-
-                    executeQuery().use { rs ->
-                        val list = mutableListOf<String>()
-                        while (rs.next())
-                            list.add(rs.getString("channel_id"))
-                        list
-                    }
-
-                }
-            } catch (e: SQLException) {
-                e.printStackTrace()
-            }
+    internal fun logEvent(eventLogType: EventLogType): List<Long> {
+        return using(sessionOf(HikariCP.dataSource())) { session ->
+            session.run(queryOf(FETCH_EVENT_LOG, guild.idLong, eventLogType.toString()).map { it.long("channel_id") }.asList)
         }
-        return listOf()
     }
 
     internal fun findCustomCommand(name: String): String? {
-        if (guild != null) {
-            try {
-                Database.withStatement(FIND_CUSTOM_COMMAND) {
-                    setString(1, guild.id)
-                    setString(2, name)
-
-                    executeQuery().use { rs -> if (!rs.isEmpty()) return rs.getString("response") }
-                }
-            } catch (e: SQLException) {
-                e.printStackTrace()
-            }
+        return using(sessionOf(HikariCP.dataSource())) { session ->
+            session.run(queryOf(FIND_CUSTOM_COMMAND, guild.idLong, name).map { it.string("response") }.asSingle)
         }
-        return null
     }
-
-//    internal val customCommands by lazy {
-//        if (guild != null) {
-//            try {
-//                return@lazy Database.withStatement(FETCH_CUSTOM_COMMANDS) {
-//                    setString(1, guild.id)
-//
-//                    val results = executeQuery()
-//                    val map = HashMap<String, String>()
-//                    while (results.next())
-//                        map[results.getString("command")] = results.getString("response")
-//                    map
-//                }
-//            } catch (e: SQLException) {
-//                e.printStackTrace()
-//            }
-//        }
-//        hashMapOf<String, String>()
-//    }
 }

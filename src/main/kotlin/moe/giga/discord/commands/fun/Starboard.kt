@@ -29,15 +29,17 @@ class Starboard : Command {
     }
 
     override fun execute(MC: MessageContext, args: List<String>) {
+        if (MC.serverCtx == null)
+            throw IllegalArgumentException("You can only use this command on a server.")
         if (args.isNotEmpty()) {
             if (args[0].equals("none", ignoreCase = true)) {
-                MC.serverCtx.starChannel = ""
+                MC.serverCtx.starChannel = null
             } else if (argRegex.matches(args[0])) {
                 val matches = argRegex.find(args[0])
                 val channelId = matches?.groups?.get(1)?.value
-                val channel = MC.serverCtx.guild!!.getTextChannelById(channelId)
+                val channel = MC.serverCtx.guild.getTextChannelById(channelId)
                 if (channel != null) {
-                    MC.serverCtx.starChannel = channel.id
+                    MC.serverCtx.starChannel = channel.idLong
                     MC.sendMessage("Star channel set to ${channel.asMention}").queue()
                     return
                 }
@@ -85,8 +87,8 @@ class Starboard : Command {
     private fun onReaction(guild: Guild, message: Message, count: Int) {
         val sc = ServerContext(guild)
 
-        if (sc.starChannel.isNotEmpty() && sc.starChannel != message.channel.id) {
-            val starChannel = guild.getTextChannelById(sc.starChannel)
+        if (sc.starChannel != null && sc.starChannel != message.channel.idLong) {
+            val starChannel = guild.getTextChannelById(sc.starChannel as Long)
 
             val entryId = findStarPost(guild.jda, starChannel, message)
 

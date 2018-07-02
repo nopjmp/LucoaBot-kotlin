@@ -1,11 +1,13 @@
 package moe.giga.discord.commands.custom
 
-import moe.giga.discord.Database
+import kotliquery.HikariCP
+import kotliquery.queryOf
+import kotliquery.sessionOf
+import kotliquery.using
 import moe.giga.discord.LucoaBot
 import moe.giga.discord.commands.Command
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.util.AccessLevel
-import java.sql.SQLException
 
 @Suppress("unused")
 class AddCustomCommand : Command {
@@ -16,7 +18,7 @@ class AddCustomCommand : Command {
     override val level = AccessLevel.MOD
 
     companion object {
-        const val ADD_CUSTOM_COMMAND = "customCommandAddOp"
+        const val ADD_CUSTOM_COMMAND = "INSERT INTO custom_commands (server_id, command, response) VALUES (?, ?, ?)"
     }
 
     override fun execute(MC: MessageContext, args: List<String>) {
@@ -30,19 +32,12 @@ class AddCustomCommand : Command {
         if (LucoaBot.handler.hasCommand(command))
             throw IllegalArgumentException("You cannot use a command that already exists as a bot command.")
 
-        if (MC.serverCtx.guild == null)
+        if (MC.serverCtx == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 
-        try {
-            Database.withStatement(ADD_CUSTOM_COMMAND) {
-                setString(1, MC.serverCtx.guild.id)
-                setString(2, command)
-                setString(3, response)
-                executeUpdate()
-                MC.sendMessage("Added command `$command`.").queue()
-            }
-        } catch (e: SQLException) {
-            e.printStackTrace()
+        using(sessionOf(HikariCP.dataSource())) { session ->
+            session.run(queryOf(ADD_CUSTOM_COMMAND, MC.serverCtx.guild.id, command, response).asUpdate)
         }
+        MC.sendMessage("Added command `$command`.").queue()
     }
 }

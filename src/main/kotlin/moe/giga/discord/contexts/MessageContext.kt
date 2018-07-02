@@ -10,7 +10,7 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.requests.restaction.MessageAction
 import javax.annotation.CheckReturnValue
 
-class MessageContext(event: MessageReceivedEvent, val serverCtx: ServerContext) {
+class MessageContext(event: MessageReceivedEvent, val serverCtx: ServerContext?) {
     val channel: MessageChannel = when {
         event.isFromType(ChannelType.PRIVATE) -> event.privateChannel
         else -> event.textChannel

@@ -12,6 +12,9 @@ class PrefixCommand : Command {
     override val level = AccessLevel.MOD
 
     override fun execute(MC: MessageContext, args: List<String>) {
+        if (MC.serverCtx == null)
+            throw IllegalArgumentException("You can only use this command on a server.")
+
         val newPrefix = args.firstOrNull() ?: ""
         when {
             newPrefix.isEmpty() -> throw IllegalArgumentException("Prefix must be at least 1 character.")

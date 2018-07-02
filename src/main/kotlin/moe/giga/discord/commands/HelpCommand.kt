@@ -13,6 +13,7 @@ class HelpCommand : Command {
     override val usage = "commands [command name or all [text (defaults to embed)]]"
 
     override fun execute(MC: MessageContext, args: List<String>) {
+        val prefix = MC.serverCtx?.prefix ?: "."
         fun generateField(command: Command): Pair<String, String> {
             val sb = StringBuilder()
             if (command.aliases.isNotEmpty()) {
@@ -23,7 +24,7 @@ class HelpCommand : Command {
 
             sb.append("*Access Level: ${command.level}*\n")
             sb.append(command.description + "\n")
-            return Pair(MC.serverCtx.prefix + command.usage, sb.toString())
+            return Pair(prefix + command.usage, sb.toString())
         }
 
         val arg = args.getOrNull(0)

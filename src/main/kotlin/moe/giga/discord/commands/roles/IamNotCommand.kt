@@ -11,7 +11,7 @@ class IamNotCommand : Command {
     override val usage = "iamnot <role>"
 
     override fun execute(MC: MessageContext, args: List<String>) {
-        if (MC.serverCtx.guild == null)
+        if (MC.serverCtx == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 
         val roleName = args.joinToString(separator = " ")
@@ -21,7 +21,7 @@ class IamNotCommand : Command {
                 ?: throw IllegalArgumentException("`$roleName` not found as a role on this server.")
 
         if (MC.serverCtx.getServerSelfRoles()
-                        .filterValues { it.contains(role.id) }
+                        .filterValues { it.contains(role.idLong) }
                         .isEmpty()) {
             throw IllegalArgumentException("`${role.name}` is not a self-assignable role.")
         }

@@ -20,7 +20,7 @@ class RolesCommand : Command {
     }
 
     override fun execute(MC: MessageContext, args: List<String>) {
-        if (MC.serverCtx.guild == null)
+        if (MC.serverCtx == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 
         val asMention = args.firstOrNull()?.toBoolean() ?: AS_MENTION

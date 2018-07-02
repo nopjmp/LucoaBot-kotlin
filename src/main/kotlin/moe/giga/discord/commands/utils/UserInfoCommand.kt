@@ -35,7 +35,7 @@ class UserInfoCommand : Command {
             }?.user ?: throw IllegalArgumentException("No such user found.")
 
     override fun execute(MC: MessageContext, args: List<String>) {
-        if (MC.serverCtx.guild == null)
+        if (MC.serverCtx == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 
         val arg = args.joinToString(" ")
