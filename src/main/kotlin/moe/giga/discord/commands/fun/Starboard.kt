@@ -65,8 +65,10 @@ class Starboard : Command {
         val author = message.jda.getUserById(message.author.id)
         val embed = EmbedBuilder()
                 .setColor(Color(255, 255, scale))
-                .setAuthor(author.username(), null, author.effectiveAvatarUrl)
-                .setDescription(message.contentDisplay)
+                .setAuthor(author.username(),
+                        "https://discordapp.com/channels/${message.guild.id}/${message.channel.id}/${message.id}",
+                        author.effectiveAvatarUrl)
+                .setDescription(message.contentRaw)
                 .setTimestamp(message.creationTime)
 
         if (!message.attachments.isEmpty()) {

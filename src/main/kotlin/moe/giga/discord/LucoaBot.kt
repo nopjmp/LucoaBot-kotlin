@@ -14,7 +14,7 @@ import javax.security.auth.login.LoginException
 object LucoaBot {
     //public static final int NORMAL_SHUTDOWN = 0;
 
-    internal const val INVALID_SETTINGS = 100
+    private const val INVALID_SETTINGS = 100
 
     private const val UNABLE_TO_CONNECT = 110
     private const val BAD_TOKEN = 111
@@ -35,13 +35,13 @@ object LucoaBot {
     private fun setupBot() {
         val settings = SettingsManager.instance.settings
         try {
-            if (settings.datasource == null || settings.username == null || settings.password == null) {
+            if (settings.datasource == null) {
                 System.exit(LucoaBot.INVALID_SETTINGS)
                 return
             }
 
             // TODO: clean this up
-            HikariCP.default(settings.datasource, settings.username, settings.password)
+            HikariCP.default(settings.datasource, "", "")
 
             val jdaBuilder = JDABuilder(AccountType.BOT).setToken(settings.botToken)
 
