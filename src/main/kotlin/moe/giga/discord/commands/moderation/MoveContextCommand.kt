@@ -5,7 +5,10 @@ import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.util.AccessLevel
 import moe.giga.discord.util.username
 import net.dv8tion.jda.core.EmbedBuilder
-import net.dv8tion.jda.core.entities.*
+import net.dv8tion.jda.core.entities.EmbedType
+import net.dv8tion.jda.core.entities.Message
+import net.dv8tion.jda.core.entities.MessageEmbed
+import net.dv8tion.jda.core.entities.User
 
 @Suppress("unused")
 class MoveContextCommand : Command {
@@ -41,7 +44,7 @@ class MoveContextCommand : Command {
     }
 
     override fun execute(MC: MessageContext, args: List<String>) {
-        if (MC.serverCtx == null)
+        if (MC.server == null)
             throw IllegalArgumentException("Required to be run on a server")
 
         val countArg = args.getOrNull(0)
@@ -57,11 +60,11 @@ class MoveContextCommand : Command {
             if (channelId != null) {
                 val messages = MC.channel.iterableHistory.filter { !it.author.isBot }
                         .take(count)
-                val textChannel = MC.serverCtx.guild.getTextChannelById(channelId)
+                val textChannel = MC.server.guild.getTextChannelById(channelId)
                 if (textChannel != null) {
                     // TODO: queue chain created through andThen Consumers
                     messages.reversed()
-                            .map { transform(it, MC.userCtx.user) }
+                            .map { transform(it, MC.user.user) }
                             .forEach { textChannel.sendMessage(it).queue() }
                 } else {
                     throw IllegalArgumentException("Did not find the channel specified.")

@@ -20,15 +20,15 @@ class RolesCommand : Command {
     }
 
     override fun execute(MC: MessageContext, args: List<String>) {
-        if (MC.serverCtx == null)
+        if (MC.server == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 
         val asMention = args.firstOrNull()?.toBoolean() ?: AS_MENTION
-        val roles = MC.serverCtx.getServerSelfRoles()
+        val roles = MC.server.getServerSelfRoles()
 
         val embedBuilder = EmbedBuilder().setTitle("Self Assignable Roles")
 
-        val proc = roles.mapValues { it.value.map { MC.serverCtx.guild.getRoleById(it) } }
+        val proc = roles.mapValues { it.value.map { MC.server.guild.getRoleById(it) } }
 
         if (proc.isNotEmpty()) {
             embedBuilder.addField("default", proc["default"]?.joinToString { formatRole(asMention, it) }, true)

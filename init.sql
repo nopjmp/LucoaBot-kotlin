@@ -1,4 +1,9 @@
-CREATE TABLE servers ( server_id BIGINT PRIMARY KEY, prefix CHAR(16), log_channel BIGINT, star_channel BIGINT );
+CREATE TABLE servers (
+  server_id    BIGINT PRIMARY KEY,
+  prefix       VARCHAR(16),
+  log_channel  BIGINT,
+  star_channel BIGINT
+);
 
 CREATE TABLE servers_roles( server_id BIGINT, role_spec VARCHAR(255), role_id BIGINT, UNIQUE(server_id, role_spec));
 CREATE INDEX servers_roles_id ON servers_roles(server_id);

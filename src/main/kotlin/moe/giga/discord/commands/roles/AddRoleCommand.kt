@@ -16,12 +16,12 @@ class AddRoleCommand : Command {
         val roleName = args.first()
         val group = args.getOrElse(1, { "default" })
 
-        if (MC.serverCtx == null)
+        if (MC.server == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 
-        val foundRole = MC.serverCtx.guild.roles.find { it.name.compareTo(roleName, true) == 0 }
+        val foundRole = MC.server.guild.roles.find { it.name.compareTo(roleName, true) == 0 }
                 ?: throw IllegalArgumentException("`$roleName` not found as a role on this server.")
-        MC.serverCtx.addSelfRole(group, foundRole.idLong)
+        MC.server.addSelfRole(group, foundRole.idLong)
         MC.sendMessage("**${foundRole.name}** is now self assignable in group $group.").queue()
     }
 }

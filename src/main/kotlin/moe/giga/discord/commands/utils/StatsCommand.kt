@@ -51,7 +51,7 @@ class StatsCommand : Command {
 
         val memberCount = guilds.stream()
                 .map { guild -> guild.memberCache.size() }
-                .reduce(0, { a, b -> a!! + b!! })
+                .reduce(0) { a, b -> a!! + b!! }
 
         MC.sendMessage(EmbedBuilder().setColor(3447003)
                 .setAuthor("LucoaBot $version", bot.avatarUrl)

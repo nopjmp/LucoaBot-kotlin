@@ -1,6 +1,7 @@
 package moe.giga.discord.contexts
 
 import kotliquery.*
+import moe.giga.discord.Handler
 import moe.giga.discord.util.AccessLevel
 import moe.giga.discord.util.EventLogType
 import net.dv8tion.jda.core.entities.Guild
@@ -31,14 +32,13 @@ class ServerContext(val guild: Guild) {
         }
     }
 
-    // TODO: this is mostly an experiment, I should probably use an ORM or something
     var prefix by DatabaseProp("prefix", { it.string("prefix") }, ".")
     var starChannel by DatabaseProp("star_channel", { it.longOrNull("star_channel") }, null)
 
     companion object {
         const val FETCH_SERVER_ROLES = "SELECT role_spec, role_id FROM servers_roles WHERE server_id = ?"
         const val FETCH_SERVER = "SELECT server_id FROM servers WHERE server_id = ?"
-        const val INSERT_SERVER = "INSERT INTO servers (server_id, prefix, log_channel, star_channel) VALUES (?, \".\", null, null)"
+        const val INSERT_SERVER = "INSERT INTO servers (server_id, prefix, log_channel, star_channel) VALUES (?, ?, null, null)"
         const val INSERT_ROLE_SPEC = "INSERT INTO servers_roles(server_id, role_spec, role_id) VALUES (?, ?, ?) " +
                 "ON CONFLICT (server_id, role_spec) DO UPDATE " +
                 "SET role_id = excluded.role_id"
@@ -64,7 +64,7 @@ class ServerContext(val guild: Guild) {
         using(sessionOf(HikariCP.dataSource())) { session ->
             if (session.run(queryOf(FETCH_SERVER, guildId)
                             .map { it.longOrNull("server_id") }.asSingle) == null) {
-                session.run(queryOf(INSERT_SERVER, guildId).asUpdate)
+                session.run(queryOf(INSERT_SERVER, guildId, Handler.DEFAULT_PREFIX).asUpdate)
             }
         }
     }

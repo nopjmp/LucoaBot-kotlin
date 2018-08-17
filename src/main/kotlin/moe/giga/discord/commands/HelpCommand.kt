@@ -13,7 +13,7 @@ class HelpCommand : Command {
     override val usage = "commands [command name or all [text (defaults to embed)]]"
 
     override fun execute(MC: MessageContext, args: List<String>) {
-        val prefix = MC.serverCtx?.prefix ?: "."
+        val prefix = MC.server?.prefix ?: "."
         fun generateField(command: Command): Pair<String, String> {
             val sb = StringBuilder()
             if (command.aliases.isNotEmpty()) {
@@ -36,7 +36,7 @@ class HelpCommand : Command {
 
         val textOnly = (args.getOrNull(1) ?: "").compareTo("text", true) == 0
         val initHelpPairs = LucoaBot.handler.commands
-                .filter { !it.hidden && MC.userCtx.allowed(it.level) }
+                .filter { !it.hidden && MC.user.allowed(it.level) }
                 .sortedBy { it.name }
 
         val helpPairs = when (search) {

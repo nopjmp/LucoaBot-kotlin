@@ -12,7 +12,7 @@ class PrefixCommand : Command {
     override val level = AccessLevel.MOD
 
     override fun execute(MC: MessageContext, args: List<String>) {
-        if (MC.serverCtx == null)
+        if (MC.server == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 
         val newPrefix = args.firstOrNull() ?: ""
@@ -22,9 +22,9 @@ class PrefixCommand : Command {
         }
 
         try {
-            MC.serverCtx.prefix = newPrefix
+            MC.server.prefix = newPrefix
 
-            MC.sendMessage("${MC.userCtx.asText} has changed the prefix to `$newPrefix`.").queue()
+            MC.sendMessage("${MC.user.asText} has changed the prefix to `$newPrefix`.").queue()
         } catch (_: Exception) {
             MC.sendError("Something bad happened while saving the new configuration.").queue()
         }

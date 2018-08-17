@@ -24,15 +24,15 @@ class EventLogCommand : Command {
     }
 
     override fun execute(MC: MessageContext, args: List<String>) {
-        if (MC.serverCtx == null)
+        if (MC.server == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 
         if (args.isNotEmpty()) {
             if (args[0].equals("none", ignoreCase = true)) {
-                MC.serverCtx.deleteEventLog(MC.channel.idLong)
+                MC.server.deleteEventLog(MC.channel.idLong)
             }
         } else {
-            MC.serverCtx.setEventLog(EventLogType.ALL, MC.channel.idLong)
+            MC.server.setEventLog(EventLogType.ALL, MC.channel.idLong)
             MC.sendMessage("Event log set to ${MC.channel.name}").queue()
             return
         }

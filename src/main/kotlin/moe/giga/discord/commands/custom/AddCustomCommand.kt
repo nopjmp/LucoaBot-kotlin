@@ -32,11 +32,11 @@ class AddCustomCommand : Command {
         if (LucoaBot.handler.hasCommand(command))
             throw IllegalArgumentException("You cannot use a command that already exists as a bot command.")
 
-        if (MC.serverCtx == null)
+        if (MC.server == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 
         using(sessionOf(HikariCP.dataSource())) { session ->
-            session.run(queryOf(ADD_CUSTOM_COMMAND, MC.serverCtx.guildId, command, response).asUpdate)
+            session.run(queryOf(ADD_CUSTOM_COMMAND, MC.server.guildId, command, response).asUpdate)
         }
         MC.sendMessage("Added command `$command`.").queue()
     }

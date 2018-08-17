@@ -64,7 +64,7 @@ class Handler internal constructor(val commands: List<Command>) {
     }
 
     private fun processCommand(mc: MessageContext, command: Command, args: List<String>) {
-        if (mc.userCtx.allowed(command.level)) {
+        if (mc.user.allowed(command.level)) {
             LucoaBot.statistics.processedCommands.incrementAndGet()
             try {
                 command.execute(mc, args)

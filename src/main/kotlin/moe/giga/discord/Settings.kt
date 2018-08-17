@@ -5,5 +5,7 @@ data class Settings(
         val botToken: String? = null,
         val clientId: String? = null,
         val ownerId: String? = null,
-        val datasource: String? = null
+        val datasource: String? = null,
+        val username: String? = null,
+        val password: String? = null
 )

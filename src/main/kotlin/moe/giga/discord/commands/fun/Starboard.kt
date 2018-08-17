@@ -29,17 +29,17 @@ class Starboard : Command {
     }
 
     override fun execute(MC: MessageContext, args: List<String>) {
-        if (MC.serverCtx == null)
+        if (MC.server == null)
             throw IllegalArgumentException("You can only use this command on a server.")
         if (args.isNotEmpty()) {
             if (args[0].equals("none", ignoreCase = true)) {
-                MC.serverCtx.starChannel = null
+                MC.server.starChannel = null
             } else if (argRegex.matches(args[0])) {
                 val matches = argRegex.find(args[0])
                 val channelId = matches?.groups?.get(1)?.value
-                val channel = MC.serverCtx.guild.getTextChannelById(channelId)
+                val channel = MC.server.guild.getTextChannelById(channelId)
                 if (channel != null) {
-                    MC.serverCtx.starChannel = channel.idLong
+                    MC.server.starChannel = channel.idLong
                     MC.sendMessage("Star channel set to ${channel.asMention}").queue()
                     return
                 }

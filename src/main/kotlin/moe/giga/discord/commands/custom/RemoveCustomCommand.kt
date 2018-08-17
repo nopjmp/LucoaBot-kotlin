@@ -23,11 +23,11 @@ class RemoveCustomCommand : Command {
         val command = args.getOrNull(0)
                 ?: throw IllegalArgumentException("You must supply a command to remove.")
 
-        if (MC.serverCtx == null)
+        if (MC.server == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 
         using(sessionOf(HikariCP.dataSource())) { session ->
-            session.run(queryOf(DELETE_CUSTOM_COMMAND, MC.serverCtx.guildId, command).asUpdate)
+            session.run(queryOf(DELETE_CUSTOM_COMMAND, MC.server.guildId, command).asUpdate)
         }
         MC.sendMessage("Deleted command `$command`.").queue()
     }

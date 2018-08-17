@@ -17,7 +17,9 @@ class SettingsManager private constructor() {
             dotenv["DISCORD_TOKEN"],
             dotenv["DISCORD_CLIENT_ID"],
             dotenv["DISCORD_OWNER"],
-            dotenv["DATASOURCE"]
+            dotenv["DATASOURCE"],
+            dotenv["USERNAME"],
+            dotenv["PASSWORD"]
     )
 
     init {

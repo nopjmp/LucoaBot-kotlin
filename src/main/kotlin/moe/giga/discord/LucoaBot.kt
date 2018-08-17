@@ -35,13 +35,12 @@ object LucoaBot {
     private fun setupBot() {
         val settings = SettingsManager.instance.settings
         try {
-            if (settings.datasource == null) {
+            if (settings.datasource == null || settings.username == null || settings.password == null) {
                 System.exit(LucoaBot.INVALID_SETTINGS)
                 return
             }
 
-            // TODO: clean this up
-            HikariCP.default(settings.datasource, "", "")
+            HikariCP.default(settings.datasource, settings.username, settings.username)
 
             val jdaBuilder = JDABuilder(AccountType.BOT).setToken(settings.botToken)
 
@@ -76,8 +75,9 @@ object LucoaBot {
 
     private fun findAnnotation(path: String, annotation: Class<*>, action: (Class<*>) -> Unit) {
         ClassGraph()
-                .verbose()             // Enable verbose logging
-                .enableAllInfo()       // Scan classes, methods, fields, annotations
+                //.verbose()             // Enable verbose logging
+                .enableClassInfo()
+                .enableAnnotationInfo()
                 .whitelistPackages(path)    // Scan com.xyz and subpackages
                 .scan().use { scanResult ->
                     val routes = scanResult.getClassesWithAnnotation(annotation.name)
@@ -87,8 +87,8 @@ object LucoaBot {
 
     private fun <T> findImplementing(path: String, interfaceClass: Class<T>, action: (Class<out T>) -> Unit) {
         ClassGraph()
-                .verbose()             // Enable verbose logging
-                .enableAllInfo()       // Scan classes, methods, fields, annotations
+                //.verbose()             // Enable verbose logging
+                .enableClassInfo()
                 .whitelistPackages(path)    // Scan com.xyz and subpackages
                 .scan().use { scanResult ->
                     val routes = scanResult.getClassesImplementing(interfaceClass.name)
