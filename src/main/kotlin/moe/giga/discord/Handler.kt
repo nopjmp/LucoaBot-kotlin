@@ -26,6 +26,10 @@ class Handler internal constructor(val commands: List<Command>) {
                 }
     }
 
+    companion object {
+        const val DEFAULT_PREFIX = "."
+    }
+
     fun hasCommand(name: String) =
             commandMap.containsKey(name) or aliasMap.containsKey(name)
 
@@ -41,17 +45,19 @@ class Handler internal constructor(val commands: List<Command>) {
     fun handleMessage(event: MessageReceivedEvent) {
         LucoaBot.statistics.messages.incrementAndGet()
         if (!event.isWebhookMessage && event.author != event.jda.selfUser && !event.author.isBot) {
-            val serverContext = ServerContext(event.guild)
+            val serverContext = event.guild?.let { ServerContext(it) }
 
             val args = commandArgs(event.message)
             val rawCommand = args.firstOrNull() ?: ""
 
-            if (rawCommand.startsWith(serverContext.prefix)) {
-                val commandName = rawCommand.substring(serverContext.prefix.length)
+            val prefix = serverContext?.prefix ?: DEFAULT_PREFIX
+
+            if (rawCommand.startsWith(prefix)) {
+                val commandName = rawCommand.substring(prefix.length)
                 if (hasCommand(commandName))
                     processCommand(MessageContext(event, serverContext),
                             resolveCommand(commandName)!!, args.drop(1).toList())
-                else
+                else if (serverContext != null) // custom commands only work on servers
                     processCustom(event, commandName, serverContext)
             }
         }

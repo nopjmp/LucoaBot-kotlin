@@ -36,7 +36,7 @@ class AddCustomCommand : Command {
             throw IllegalArgumentException("You can only use this command on a server.")
 
         using(sessionOf(HikariCP.dataSource())) { session ->
-            session.run(queryOf(ADD_CUSTOM_COMMAND, MC.serverCtx.guild.id, command, response).asUpdate)
+            session.run(queryOf(ADD_CUSTOM_COMMAND, MC.serverCtx.guild.idLong, command, response).asUpdate)
         }
         MC.sendMessage("Added command `$command`.").queue()
     }

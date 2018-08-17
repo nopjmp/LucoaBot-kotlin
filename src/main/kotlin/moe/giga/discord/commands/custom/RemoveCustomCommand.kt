@@ -27,7 +27,7 @@ class RemoveCustomCommand : Command {
             throw IllegalArgumentException("You can only use this command on a server.")
 
         using(sessionOf(HikariCP.dataSource())) { session ->
-            session.run(queryOf(DELETE_CUSTOM_COMMAND, MC.serverCtx.guild.id, command).asUpdate)
+            session.run(queryOf(DELETE_CUSTOM_COMMAND, MC.serverCtx.guild.idLong, command).asUpdate)
         }
         MC.sendMessage("Deleted command `$command`.").queue()
     }
