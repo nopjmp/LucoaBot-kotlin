@@ -10,8 +10,10 @@ import kotlin.reflect.KProperty
 
 // log events structure?
 class ServerContext(val guild: Guild) {
+    val guildId = guild.idLong
+
     inner class DatabaseProp<T>(columnName: String, mapFunc: (Row) -> T, private val default: T) {
-        private val getSQL = queryOf("SELECT $columnName FROM servers WHERE server_id = ?", guild.idLong)
+        private val getSQL = queryOf("SELECT $columnName FROM servers WHERE server_id = ?", guildId)
                 .map(mapFunc).asSingle
         private val setSQL = "UPDATE servers SET $columnName = ? WHERE server_id = ?"
 
@@ -23,7 +25,7 @@ class ServerContext(val guild: Guild) {
 
         operator fun setValue(thisRef: Any?, p: KProperty<*>, v: T) {
             using(sessionOf(HikariCP.dataSource())) { session ->
-                session.run(queryOf(setSQL, v, guild.idLong).asUpdate)
+                session.run(queryOf(setSQL, v, guildId).asUpdate)
             }
         }
     }
@@ -50,7 +52,7 @@ class ServerContext(val guild: Guild) {
     }
 
     private fun serverRoles(): Map<String, Long> {
-        val selectQuery = queryOf(FETCH_SERVER_ROLES, guild.idLong)
+        val selectQuery = queryOf(FETCH_SERVER_ROLES, guildId)
                 .map { Pair(it.string("role_spec"), it.long("role_id")) }.asList
         return using(sessionOf(HikariCP.dataSource())) { session ->
             session.run(selectQuery).associate { it }
@@ -59,35 +61,35 @@ class ServerContext(val guild: Guild) {
 
     init {
         using(sessionOf(HikariCP.dataSource())) { session ->
-            if (session.run(queryOf(FETCH_SERVER, guild.idLong)
+            if (session.run(queryOf(FETCH_SERVER, guildId)
                             .map { it.longOrNull("server_id") }.asSingle) == null) {
-                session.run(queryOf(INSERT_SERVER, guild.idLong).asUpdate)
+                session.run(queryOf(INSERT_SERVER, guildId).asUpdate)
             }
         }
     }
 
     internal fun addSpecRole(spec: String, id: Long) {
         using(sessionOf(HikariCP.dataSource())) { session ->
-            session.run(queryOf(INSERT_ROLE_SPEC, guild.idLong, spec, id).asUpdate)
+            session.run(queryOf(INSERT_ROLE_SPEC, guildId, spec, id).asUpdate)
         }
     }
 
     internal fun addSelfRole(group: String, id: Long) {
         using(sessionOf(HikariCP.dataSource())) { session ->
-            session.run(queryOf(INSERT_SELF_ROLE, guild.idLong, group, id).asUpdate)
+            session.run(queryOf(INSERT_SELF_ROLE, guildId, group, id).asUpdate)
         }
     }
 
     internal fun deleteSelfRole(id: Long) {
         using(sessionOf(HikariCP.dataSource())) { session ->
-            session.run(queryOf(DELETE_SELF_ROLE, guild.idLong, id).asUpdate)
+            session.run(queryOf(DELETE_SELF_ROLE, guildId, id).asUpdate)
         }
     }
 
 
     internal fun getServerSelfRoles(): Map<String, List<Long>> {
         return using(sessionOf(HikariCP.dataSource())) { session ->
-            session.run(queryOf(FETCH_SELF_ROLES, guild.idLong)
+            session.run(queryOf(FETCH_SELF_ROLES, guildId)
                     .map { Pair(it.string("role_spec"), it.long("role_id")) }.asList)
                     .groupBy({ it.first }, { it.second })
         }
@@ -115,30 +117,30 @@ class ServerContext(val guild: Guild) {
 
     internal fun deleteEventLog(channel: Long) {
         using(sessionOf(HikariCP.dataSource())) { session ->
-            session.run(queryOf(DELETE_EVENT_LOG, guild.idLong, channel).asUpdate)
+            session.run(queryOf(DELETE_EVENT_LOG, guildId, channel).asUpdate)
         }
     }
 
     internal fun setEventLog(eventLogType: EventLogType, channel: Long): Boolean {
         return using(sessionOf(HikariCP.dataSource())) { session ->
-            val list = session.run(queryOf(FETCH_STAR_EVENT_LOG, guild.idLong).map { it.long("channel_id") }.asList)
+            val list = session.run(queryOf(FETCH_STAR_EVENT_LOG, guildId).map { it.long("channel_id") }.asList)
             if (list.contains(channel)) {
                 return@using 0
             }
 
-            session.run(queryOf(UPDATE_EVENT_LOG, guild.idLong, eventLogType.toString(), channel).asUpdate)
+            session.run(queryOf(UPDATE_EVENT_LOG, guildId, eventLogType.toString(), channel).asUpdate)
         } > 0
     }
 
     internal fun logEvent(eventLogType: EventLogType): List<Long> {
         return using(sessionOf(HikariCP.dataSource())) { session ->
-            session.run(queryOf(FETCH_EVENT_LOG, guild.idLong, eventLogType.toString()).map { it.long("channel_id") }.asList)
+            session.run(queryOf(FETCH_EVENT_LOG, guildId, eventLogType.toString()).map { it.long("channel_id") }.asList)
         }
     }
 
     internal fun findCustomCommand(name: String): String? {
         return using(sessionOf(HikariCP.dataSource())) { session ->
-            session.run(queryOf(FIND_CUSTOM_COMMAND, guild.idLong, name).map { it.string("response") }.asSingle)
+            session.run(queryOf(FIND_CUSTOM_COMMAND, guildId, name).map { it.string("response") }.asSingle)
         }
     }
 }
