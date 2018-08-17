@@ -1,6 +1,6 @@
 package moe.giga.discord
 
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner
+import io.github.classgraph.ClassGraph
 import kotliquery.HikariCP
 import moe.giga.discord.commands.Command
 import moe.giga.discord.listeners.BotListener
@@ -8,8 +8,8 @@ import net.dv8tion.jda.core.AccountType
 import net.dv8tion.jda.core.JDABuilder
 import net.dv8tion.jda.core.hooks.AnnotatedEventManager
 import org.pmw.tinylog.Logger
-import java.lang.annotation.RetentionPolicy
 import javax.security.auth.login.LoginException
+
 
 object LucoaBot {
     //public static final int NORMAL_SHUTDOWN = 0;
@@ -54,7 +54,7 @@ object LucoaBot {
                 jdaBuilder.addEventListener(clazz.getDeclaredConstructor().newInstance())
             }
 
-            jdaBuilder.buildAsync()
+            jdaBuilder.build()
         } catch (e: LoginException) {
             e.printStackTrace()
             Logger.error("The bot token provided was most likely incorrect.")
@@ -74,17 +74,25 @@ object LucoaBot {
         return commands
     }
 
-    private fun <T> findAnnotation(path: String, clazz: Class<T>, action: (Class<*>) -> Unit) {
-        FastClasspathScanner(path)
-                .setAnnotationVisibility(RetentionPolicy.RUNTIME)
-                .matchClassesWithAnnotation(clazz, action)
-                .scan()
+    private fun findAnnotation(path: String, annotation: Class<*>, action: (Class<*>) -> Unit) {
+        ClassGraph()
+                .verbose()             // Enable verbose logging
+                .enableAllInfo()       // Scan classes, methods, fields, annotations
+                .whitelistPackages(path)    // Scan com.xyz and subpackages
+                .scan().use { scanResult ->
+                    val routes = scanResult.getClassesWithAnnotation(annotation.name)
+                    routes.loadClasses().forEach(action)
+                }
     }
 
-    private fun <T> findImplementing(path: String, clazz: Class<T>, action: (Class<out T>) -> Unit) {
-        FastClasspathScanner(path)
-                .setAnnotationVisibility(RetentionPolicy.RUNTIME)
-                .matchClassesImplementing(clazz, action)
-                .scan()
+    private fun <T> findImplementing(path: String, interfaceClass: Class<T>, action: (Class<out T>) -> Unit) {
+        ClassGraph()
+                .verbose()             // Enable verbose logging
+                .enableAllInfo()       // Scan classes, methods, fields, annotations
+                .whitelistPackages(path)    // Scan com.xyz and subpackages
+                .scan().use { scanResult ->
+                    val routes = scanResult.getClassesImplementing(interfaceClass.name)
+                    routes.loadClasses(interfaceClass).forEach(action)
+                }
     }
 }
