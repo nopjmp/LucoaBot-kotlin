@@ -10,7 +10,8 @@ import kotlin.reflect.KProperty
 
 // log events structure?
 class ServerContext(val guild: Guild) {
-    val guildId = guild.idLong
+    val guildId: Long
+        get() = guild.idLong
 
     inner class DatabaseProp<T>(columnName: String, mapFunc: (Row) -> T, private val default: T) {
         private val getSQL = queryOf("SELECT $columnName FROM servers WHERE server_id = ?", guildId)
