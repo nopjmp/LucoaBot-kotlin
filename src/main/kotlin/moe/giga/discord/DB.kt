@@ -24,7 +24,6 @@ object DB {
         config.jdbcUrl = dotenv["DATASOURCE"]
         config.username = dotenv["USERNAME"]
         config.password = dotenv["PASSWORD"]
-        config.dataSourceClassName = "org.postgresql.ds.PGSimpleDataSource"
         config.connectionTimeout = 1000
         ds = HikariDataSource(config)
     }
