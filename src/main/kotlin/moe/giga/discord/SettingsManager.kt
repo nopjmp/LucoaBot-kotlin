@@ -16,10 +16,7 @@ class SettingsManager private constructor() {
     private val envSettings = Settings(
             dotenv["DISCORD_TOKEN"],
             dotenv["DISCORD_CLIENT_ID"],
-            dotenv["DISCORD_OWNER"],
-            dotenv["DATASOURCE"],
-            dotenv["USERNAME"],
-            dotenv["PASSWORD"]
+            dotenv["DISCORD_OWNER"]
     )
 
     init {

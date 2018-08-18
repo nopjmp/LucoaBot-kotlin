@@ -1,9 +1,8 @@
 package moe.giga.discord.commands.custom
 
-import kotliquery.HikariCP
 import kotliquery.queryOf
-import kotliquery.sessionOf
 import kotliquery.using
+import moe.giga.discord.DB
 import moe.giga.discord.commands.Command
 import moe.giga.discord.contexts.MessageContext
 import moe.giga.discord.util.AccessLevel
@@ -26,7 +25,7 @@ class RemoveCustomCommand : Command {
         if (MC.server == null)
             throw IllegalArgumentException("You can only use this command on a server.")
 
-        using(sessionOf(HikariCP.dataSource())) { session ->
+        using(DB.session) { session ->
             session.run(queryOf(DELETE_CUSTOM_COMMAND, MC.server.guildId, command).asUpdate)
         }
         MC.sendMessage("Deleted command `$command`.").queue()

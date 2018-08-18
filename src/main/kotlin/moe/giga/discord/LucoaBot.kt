@@ -1,7 +1,6 @@
 package moe.giga.discord
 
 import io.github.classgraph.ClassGraph
-import kotliquery.HikariCP
 import moe.giga.discord.commands.Command
 import moe.giga.discord.listeners.BotListener
 import net.dv8tion.jda.core.AccountType
@@ -13,8 +12,6 @@ import javax.security.auth.login.LoginException
 
 object LucoaBot {
     //public static final int NORMAL_SHUTDOWN = 0;
-
-    private const val INVALID_SETTINGS = 100
 
     private const val UNABLE_TO_CONNECT = 110
     private const val BAD_TOKEN = 111
@@ -35,13 +32,6 @@ object LucoaBot {
     private fun setupBot() {
         val settings = SettingsManager.instance.settings
         try {
-            if (settings.datasource == null || settings.username == null || settings.password == null) {
-                System.exit(LucoaBot.INVALID_SETTINGS)
-                return
-            }
-
-            HikariCP.default(settings.datasource, settings.username, settings.username)
-
             val jdaBuilder = JDABuilder(AccountType.BOT).setToken(settings.botToken)
 
             jdaBuilder.setEventManager(AnnotatedEventManager())
