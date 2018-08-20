@@ -16,7 +16,6 @@ class Handler internal constructor(val commands: List<Command>) {
     private val commandMap = commands.associateBy { it.name }
     private val aliasMap = mutableMapOf<String, Command>()
 
-    // TODO: add ability to escape double quotes
     private val splitRegex = Regex("([\"'])((?:\\\\\\1|.)*?)\\1|[^ '\"]+")
 
     init {
@@ -40,7 +39,6 @@ class Handler internal constructor(val commands: List<Command>) {
 
     private fun resolveCommand(commandName: String) = commandMap[commandName] ?: aliasMap[commandName]
 
-    // TODO: allow multiple word commands, probably will need a trie structure to find the commands, or regex lol
     @SubscribeEvent
     fun handleMessage(event: MessageReceivedEvent) {
         LucoaBot.statistics.messages.incrementAndGet()

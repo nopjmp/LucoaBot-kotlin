@@ -20,8 +20,8 @@ class PruneCommand : Command {
             val num = args.first().toInt()
             when {
                 MC.channel.type == ChannelType.TEXT ->
-                    MC.channel.history.retrievePast(num + 1).queue {
-                        (MC.channel as TextChannel).deleteMessages(it).queue()
+                    MC.channel.history.retrievePast(num + 1).queue { messages ->
+                        (MC.channel as TextChannel).deleteMessages(messages).queue()
                         MC.sendMessage("Bulk deleted $num messages.").queue {
                             Timer().schedule(5000) { it.delete().queue() }
                         }

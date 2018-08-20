@@ -14,7 +14,7 @@ class AddRoleCommand : Command {
 
     override fun execute(MC: MessageContext, args: List<String>) {
         val roleName = args.first()
-        val group = args.getOrElse(1, { "default" })
+        val group = args.getOrElse(1) { "default" }
 
         if (MC.server == null)
             throw IllegalArgumentException("You can only use this command on a server.")

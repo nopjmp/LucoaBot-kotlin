@@ -53,8 +53,7 @@ class Starboard : Command {
                     .limit(100) // 50 seems like a good limit
                     .filter { it.author == jda.selfUser }
                     .filter { it.creationTime.isAfter(OffsetDateTime.now().minusDays(1)) }
-                    .find { it.contentRaw.contains("${message.textChannel.asMention} ID: ${message.id}") }
-                    ?.let { it.idLong }
+                    .find { it.contentRaw.contains("${message.textChannel.asMention} ID: ${message.id}") }?.idLong
 
     private fun makeText(message: Message, count: Int): String {
         return "$EMOTE **$count** ${message.textChannel.asMention} ID: ${message.idLong}"
@@ -105,7 +104,7 @@ class Starboard : Command {
                 if (entryId == null) {
                     starChannel.sendMessage(embed).content(text).queue()
                 } else {
-                    starChannel.getMessageById(entryId).queue({ it.editMessage(embed).content(text).queue() })
+                    starChannel.getMessageById(entryId).queue { it.editMessage(embed).content(text).queue() }
                 }
             }
         }

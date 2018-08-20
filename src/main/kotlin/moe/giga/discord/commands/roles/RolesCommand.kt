@@ -28,12 +28,12 @@ class RolesCommand : Command {
 
         val embedBuilder = EmbedBuilder().setTitle("Self Assignable Roles")
 
-        val proc = roles.mapValues { it.value.map { MC.server.guild.getRoleById(it) } }
+        val proc = roles.mapValues { kv -> kv.value.map { MC.server.guild.getRoleById(it) } }
 
         if (proc.isNotEmpty()) {
             embedBuilder.addField("default", proc["default"]?.joinToString { formatRole(asMention, it) }, true)
-            proc.filterKeys { it != "default" }.onEach {
-                embedBuilder.addField(it.key, it.value.joinToString { formatRole(asMention, it) }, true)
+            proc.filterKeys { it != "default" }.onEach { kv ->
+                embedBuilder.addField(kv.key, kv.value.joinToString { formatRole(asMention, it) }, true)
             }
         } else {
             embedBuilder.setDescription("There are no self assignable roles.")

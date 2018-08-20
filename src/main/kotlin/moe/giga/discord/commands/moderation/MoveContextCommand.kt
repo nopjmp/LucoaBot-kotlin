@@ -20,7 +20,7 @@ class MoveContextCommand : Command {
 
     private val channelRegex = Regex("""<#(\d+)>""")
 
-    fun transform(message: Message, u: User): MessageEmbed {
+    private fun transform(message: Message, u: User): MessageEmbed {
         val builder = EmbedBuilder()
                 .setDescription(message.contentRaw)
                 .setTimestamp(message.creationTime)
