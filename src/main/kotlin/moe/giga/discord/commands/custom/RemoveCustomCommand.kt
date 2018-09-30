@@ -16,6 +16,8 @@ class RemoveCustomCommand : Command {
 
     companion object {
         const val DELETE_CUSTOM_COMMAND = "DELETE FROM custom_commands WHERE server_id = ? AND command = ?"
+        const val FIND_CUSTOM_COMMAND = "SELECT command FROM custom_commands WHERE server_id = ? AND command = ?"
+
     }
 
     override fun execute(MC: MessageContext, args: List<String>) {
@@ -26,7 +28,10 @@ class RemoveCustomCommand : Command {
             throw IllegalArgumentException("You can only use this command on a server.")
 
         using(DB.session) { session ->
-            session.run(queryOf(DELETE_CUSTOM_COMMAND, MC.server.guildId, command).asUpdate)
+            if (session.single(queryOf(FIND_CUSTOM_COMMAND, MC.server.guildId, command)) { it.anyOrNull(1) } != null)
+                session.run(queryOf(DELETE_CUSTOM_COMMAND, MC.server.guildId, command).asUpdate)
+            else
+                throw IllegalArgumentException("You can only delete custom commands that exist.")
         }
         MC.sendMessage("Deleted command `$command`.").queue()
     }

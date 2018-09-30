@@ -21,7 +21,5 @@ class UserContext(val user: User, serverContext: ServerContext?) {
 
     val asText: String by lazy { "**${user.username()}**" }
 
-    fun allowed(perms: AccessLevel): Boolean {
-        return permissions >= perms
-    }
+    fun allowed(perms: AccessLevel): Boolean = permissions >= perms
 }

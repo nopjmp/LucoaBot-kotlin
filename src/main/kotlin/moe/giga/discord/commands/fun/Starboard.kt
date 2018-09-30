@@ -56,7 +56,8 @@ class Starboard : Command {
                     .find { it.contentRaw.contains("${message.textChannel.asMention} ID: ${message.id}") }?.idLong
 
     private fun makeText(message: Message, count: Int): String {
-        return "$EMOTE **$count** ${message.textChannel.asMention} ID: ${message.idLong}"
+        return "$EMOTE **$count** ${message.textChannel.asMention} ID: ${message.idLong}\n" +
+                "https://discordapp.com/channels/${message.guild.id}/${message.channel.id}/${message.id}"
     }
 
     private fun makeEmbed(message: Message, count: Int): MessageEmbed {
@@ -64,8 +65,7 @@ class Starboard : Command {
         val author = message.jda.getUserById(message.author.id)
         val embed = EmbedBuilder()
                 .setColor(Color(255, 255, scale))
-                .setAuthor(author.username(),
-                        "https://discordapp.com/channels/${message.guild.id}/${message.channel.id}/${message.id}",
+                .setAuthor(author.username(), null,
                         author.effectiveAvatarUrl)
                 .setDescription(message.contentRaw)
                 .setTimestamp(message.creationTime)

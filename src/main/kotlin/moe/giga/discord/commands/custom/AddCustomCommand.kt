@@ -18,13 +18,14 @@ class AddCustomCommand : Command {
 
     companion object {
         const val ADD_CUSTOM_COMMAND = "INSERT INTO custom_commands (server_id, command, response) VALUES (?, ?, ?)"
+        const val FIND_CUSTOM_COMMAND = "SELECT command FROM custom_commands WHERE server_id = ? AND command = ?"
     }
 
     override fun execute(MC: MessageContext, args: List<String>) {
         val command = args.getOrNull(0)
                 ?: throw IllegalArgumentException("You must supply a command and response.")
 
-        val response = args.drop(1).joinToString(" ")
+        val response = MC.message.contentRaw.split(" ").drop(2).joinToString(" ")
         if (response.isEmpty())
             throw IllegalArgumentException("You must supply a command response.")
 
@@ -35,7 +36,10 @@ class AddCustomCommand : Command {
             throw IllegalArgumentException("You can only use this command on a server.")
 
         using(DB.session) { session ->
-            session.run(queryOf(ADD_CUSTOM_COMMAND, MC.server.guildId, command, response).asUpdate)
+            if (session.single(queryOf(FIND_CUSTOM_COMMAND, MC.server.guildId, command)) { it.anyOrNull(1) } == null)
+                session.run(queryOf(ADD_CUSTOM_COMMAND, MC.server.guildId, command, response).asUpdate)
+            else
+                throw IllegalArgumentException("You cannot use a command that already exists as a custom command.")
         }
         MC.sendMessage("Added command `$command`.").queue()
     }
