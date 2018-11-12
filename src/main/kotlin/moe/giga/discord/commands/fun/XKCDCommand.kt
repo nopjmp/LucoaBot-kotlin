@@ -23,7 +23,10 @@ class XKCDCommand : Command {
                     .setFooter(data.alt, null).build())
                     .queue()
         }
-        val reportError = { _: IOException? -> MC.sendError("Error communicating with XKCD").queue() }
+        val reportError = { e: IOException? ->
+            e?.printStackTrace()
+            MC.sendError("Error communicating with XKCD").queue()
+        }
         try {
             when {
                 args.isEmpty() -> {
@@ -37,7 +40,7 @@ class XKCDCommand : Command {
                 }
                 else -> {
                     val num = args.first().toInt()
-                    httpFetcher.execute("https://xkcd.com/info.$num.json", complete, reportError)
+                    httpFetcher.execute("https://xkcd.com/$num/info.0.json", complete, reportError)
                 }
             }
         } catch (_: Exception) {

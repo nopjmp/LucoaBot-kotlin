@@ -21,26 +21,6 @@ class HttpFetcher<T>(clazz: Class<T>) {
         client.newCall(request).enqueue(OkHttpCallbackProxy(action, error))
     }
 
-    class IOExceptionWrapper(private val e: Exception) : IOException(e.message) {
-        override fun getStackTrace(): Array<StackTraceElement> {
-            return e.stackTrace
-        }
-
-        override val cause: Throwable?
-            get() = e.cause
-
-        override val message: String?
-            get() = e.message
-
-        override fun equals(other: Any?): Boolean {
-            return e == other
-        }
-
-        override fun hashCode(): Int {
-            return e.hashCode()
-        }
-    }
-
     inner class OkHttpCallbackProxy(private val success: (T) -> Unit,
                                     private val error: (IOException?) -> Unit) : Callback {
         override fun onFailure(call: Call?, e: IOException?) {
@@ -48,19 +28,21 @@ class HttpFetcher<T>(clazz: Class<T>) {
         }
 
         override fun onResponse(call: Call?, resp: Response?) {
-            try {
-                if (resp == null || !resp.isSuccessful)
-                    throw IOException("Unexpected response")
-                if (resp.code() != 200)
-                    throw IOException("Unexpected status code")
+            if (resp == null || !resp.isSuccessful) {
+                error(IOException("Unexpected response"))
+                return
+            }
 
-                resp.body().use { body ->
-                    success(dataJsonAdapter.fromJson(body!!.source()) ?: throw IOException("Unexpected response"))
+            resp.use {
+                when {
+                    it.code() != 200 -> {
+                        error(IOException("Unexpected status code"))
+                    }
+                    else -> it.body()?.use { body ->
+                        success(dataJsonAdapter.fromJson(body.source())
+                                ?: throw IOException("Unexpected response"))
+                    }
                 }
-            } catch (e: IOException) {
-                error(e)
-            } catch (e: Exception) {
-                error(IOExceptionWrapper(e))
             }
         }
     }
