@@ -19,7 +19,7 @@ class MessageContext(event: MessageReceivedEvent, val server: ServerContext?) {
     val user: UserContext = UserContext(event.author, server)
     val jda: JDA = event.jda
 
-    val message = event.message
+    val message = event.message!!
 
     private fun sendMessage(message: Message): MessageAction = channel.sendMessage(message)
 
