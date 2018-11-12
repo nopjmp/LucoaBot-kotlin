@@ -28,20 +28,14 @@ class HttpFetcher<T>(clazz: Class<T>) {
         }
 
         override fun onResponse(call: Call?, resp: Response?) {
-            if (resp == null || !resp.isSuccessful) {
-                error(IOException("Unexpected response"))
-                return
-            }
-
-            resp.use {
-                when {
-                    it.code() != 200 -> {
-                        error(IOException("Unexpected status code"))
-                    }
-                    else -> it.body()?.use { body ->
-                        success(dataJsonAdapter.fromJson(body.source())
-                                ?: throw IOException("Unexpected response"))
-                    }
+            when {
+                resp == null || !resp.isSuccessful -> error(IOException("Unexpected response"))
+                resp.code() != 200 -> {
+                    error(IOException("Unexpected status code"))
+                }
+                else -> resp.body()?.use { body ->
+                    success(dataJsonAdapter.fromJson(body.source())
+                            ?: throw IOException("Unexpected response"))
                 }
             }
         }
