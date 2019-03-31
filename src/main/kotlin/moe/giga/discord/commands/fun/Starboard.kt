@@ -50,7 +50,7 @@ class Starboard : Command {
 
     private fun findStarPost(jda: JDA, channel: TextChannel, message: Message) =
             channel.iterableHistory
-                    .limit(100) // 50 seems like a good limit
+                    .limit(100)
                     .filter { it.author == jda.selfUser }
                     .filter { it.creationTime.isAfter(OffsetDateTime.now().minusDays(1)) }
                     .find { it.contentRaw.contains("${message.textChannel.asMention} ID: ${message.id}") }?.idLong
@@ -72,8 +72,12 @@ class Starboard : Command {
 
         if (!message.attachments.isEmpty()) {
             val attachment = message.attachments[0]
-            if (attachment.width > 0 || attachment.height > 0) {
-                embed.setImage(attachment.url)
+            if (attachment.isImage) {
+                if (attachment.fileName.startsWith("SPOILER_")) {
+                    embed.addField("SPOILER", attachment.url, false)
+                } else {
+                    embed.setImage(attachment.url)
+                }
             }
         } else if (!message.embeds.isEmpty()) {
             val messageEmbed = message.embeds[0]

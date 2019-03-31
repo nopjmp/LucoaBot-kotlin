@@ -20,16 +20,7 @@ object LucoaBot {
 
     val statistics = BotStatistics()
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-        if (System.getProperty("file.encoding") == "UTF-8") {
-            setupBot()
-        } else {
-            Logger.error("Please relaunch with file.encoding set to UTF-8")
-        }
-    }
-
-    private fun setupBot() {
+    fun setupBot() {
         val settings = SettingsManager.instance.settings
         try {
             val jdaBuilder = JDABuilder(AccountType.BOT).setToken(settings.botToken)
@@ -39,7 +30,7 @@ object LucoaBot {
             handler = Handler(findCommands().apply { forEach { it.init(jdaBuilder) } })
             jdaBuilder.addEventListener(handler)
 
-            findAnnotation("moe.giga.discord.listeners", BotListener::class.java) { clazz ->
+            findListeners { clazz ->
                 jdaBuilder.addEventListener(clazz.getDeclaredConstructor().newInstance())
             }
 
@@ -57,32 +48,37 @@ object LucoaBot {
 
     private fun findCommands(): List<Command> {
         val commands = mutableListOf<Command>()
-        findImplementing("moe.giga.discord.commands", Command::class.java) { clazz ->
-            commands.add(clazz.getDeclaredConstructor().newInstance())
-        }
+        ClassGraph()
+                //.verbose()             // Enable verbose logging
+                .enableClassInfo()
+                .whitelistPackages("moe.giga.discord.commands")    // Scan com.xyz and subpackages
+                .scan().use { scanResult ->
+                    val routes = scanResult.getClassesImplementing(Command::class.java.name)
+                    routes.loadClasses(Command::class.java).forEach {
+                        commands.add(it.getDeclaredConstructor().newInstance())
+                    }
+                }
         return commands
     }
 
-    private fun findAnnotation(path: String, annotation: Class<*>, action: (Class<*>) -> Unit) {
+    private fun findListeners(action: (Class<*>) -> Unit) {
         ClassGraph()
                 //.verbose()             // Enable verbose logging
                 .enableClassInfo()
                 .enableAnnotationInfo()
-                .whitelistPackages(path)    // Scan com.xyz and subpackages
+                .whitelistPackages("moe.giga.discord.listeners")    // Scan com.xyz and subpackages
                 .scan().use { scanResult ->
-                    val routes = scanResult.getClassesWithAnnotation(annotation.name)
+                    val routes = scanResult.getClassesWithAnnotation(BotListener::class.java.name)
                     routes.loadClasses().forEach(action)
                 }
     }
+}
 
-    private fun <T> findImplementing(path: String, interfaceClass: Class<T>, action: (Class<out T>) -> Unit) {
-        ClassGraph()
-                //.verbose()             // Enable verbose logging
-                .enableClassInfo()
-                .whitelistPackages(path)    // Scan com.xyz and subpackages
-                .scan().use { scanResult ->
-                    val routes = scanResult.getClassesImplementing(interfaceClass.name)
-                    routes.loadClasses(interfaceClass).forEach(action)
-                }
+fun main() {
+    if (System.getProperty("file.encoding") == "UTF-8") {
+        LucoaBot.setupBot()
+    } else {
+        Logger.error("Please relaunch with file.encoding set to UTF-8")
     }
 }
+
