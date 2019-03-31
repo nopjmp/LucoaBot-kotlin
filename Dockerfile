@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk8-openj9:latest
+FROM adoptopenjdk/openjdk11-openj9:latest
 
 MAINTAINER Kayla Thompson <jmp@0x.gg>
 
