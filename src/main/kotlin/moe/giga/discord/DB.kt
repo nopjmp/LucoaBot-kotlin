@@ -22,8 +22,6 @@ object DB {
             ignoreIfMissing = true
         }
         config.jdbcUrl = dotenv["DATASOURCE"]
-        config.username = dotenv["USERNAME"]
-        config.password = dotenv["PASSWORD"]
         config.connectionTimeout = 1000
         ds = HikariDataSource(config)
     }
