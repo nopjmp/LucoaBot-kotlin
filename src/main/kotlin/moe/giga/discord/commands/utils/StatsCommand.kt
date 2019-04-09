@@ -42,8 +42,7 @@ class StatsCommand : Command {
                 .replace("(\\d[HMS])(?!$)".toRegex(), "$1 ")
                 .toLowerCase()
 
-        val memoryStr = String.format("%dMB / %dMB", heapMemoryUsage.used / (1024 * 1024),
-                heapMemoryUsage.max / (1024 * 1024))
+        val memoryStr = "${heapMemoryUsage.used / (1024 * 1024)}MB / ${heapMemoryUsage.max / (1024 * 1024)}MB"
 
         val owner = MC.jda.asBot().applicationInfo.complete().owner
 

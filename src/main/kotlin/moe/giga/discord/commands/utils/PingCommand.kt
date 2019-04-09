@@ -9,12 +9,6 @@ class PingCommand : Command {
     override val description = "Ping command"
 
     override fun execute(MC: MessageContext, args: List<String>) {
-//        val start = Instant.now()
-//        MC.channel.sendMessage("Pong!").queue {
-//            val end = Instant.now()
-//            val delta = Duration.between(start, end).toMillis()
-//            it.editMessage(String.format("Pong! %dms", delta)).queue()
-//        }
-        MC.channel.sendMessage(String.format("Pong! %dms", MC.jda.ping)).queue()
+        MC.channel.sendMessage("Pong! ${MC.jda.ping}ms").queue()
     }
 }

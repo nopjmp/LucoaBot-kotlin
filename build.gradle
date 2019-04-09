@@ -75,5 +75,5 @@ allprojects {
     updateApplicationProperties()
 }
 
-//Creates the w/ dependencies jar.
-assemble.dependsOn shadowJar
+////Creates the w/ dependencies jar.
+//assemble.dependsOn shadowJar
